@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DevToolsHub - Catálogo de herramientas de desarrollo">
+    <title>DevToolsHub - Herramientas de Desarrollo</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">🛠️</span>
+                    <h1>DevToolsHub</h1>
+                </a>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="index.html" class="nav-link active">Inicio</a></li>
+                        <li><a href="#favoritos" class="nav-link">Favoritos</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <section class="search-section">
+                <div class="search-controls">
+                    <div class="search-bar">
+                        <label for="search-input" class="visually-hidden">Buscar herramientas</label>
+                        <input 
+                            type="search" 
+                            id="search-input" 
+                            name="search"
+                            placeholder="Buscar herramientas..."
+                            autocomplete="off"
+                            aria-label="Buscar herramientas"
+                        >
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                    </div>
+                    <div class="filter-group">
+                        <label for="category-filter" class="visually-hidden">Filtrar por categoría</label>
+                        <select id="category-filter" name="category" aria-label="Filtrar por categoría">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="search-results-info" aria-live="polite">
+                    <span id="results-count">Cargando herramientas...</span>
+                </div>
+            </section>
+
+            <section class="tools-section" aria-label="Catálogo de herramientas">
+                <div id="tools-grid" class="tools-grid">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>Cargando herramientas...</p>
+                    </div>
+                </div>
+            </section>
+
+            <nav id="pagination" class="pagination" aria-label="Paginación"></nav>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 DevToolsHub. Gestión de herramientas de desarrollo.</p>
+        </div>
+    </footer>
+
+    <template id="tool-card-template">
+        <article class="tool-card">
+            <div class="tool-header">
+                <img class="tool-logo" src="" alt="" loading="lazy">
+                <div class="tool-meta">
+                    <span class="tool-rating" aria-label="Valoración">
+                        <span class="rating-stars"></span>
+                    </span>
+                </div>
+            </div>
+            <h3 class="tool-name"></h3>
+            <p class="tool-description"></p>
+            <div class="tool-categories"></div>
+            <div class="tool-actions">
+                <a href="#" class="btn btn-primary btn-detail">Ver detalle</a>
+                <button class="btn btn-icon btn-favorite" aria-label="Marcar como favorito">
+                    <span class="favorite-icon">☆</span>
+                </button>
+            </div>
+        </article>
+    </template>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>

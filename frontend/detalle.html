@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Detalle de herramienta - DevToolsHub">
+    <title>Detalle de Herramienta - DevToolsHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">🛠️</span>
+                    <h1>DevToolsHub</h1>
+                </a>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="index.html" class="nav-link">Inicio</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <section id="tool-detail" class="tool-detail">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Cargando detalles de herramienta...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 DevToolsHub. Gestión de herramientas de desarrollo.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js" type="module"></script>
+    <script>
+        window.__DETAIL_MODE__ = true;
+    </script>
+</body>
+</html>
