@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const ToolController = require('../controllers/tool.controller');
 const { body } = require('express-validator');
+const validate = require('../middleware/validate');
 
 // Factory function que crea las rutas con el controller inicializado
 const createToolRoutes = (db) => {
@@ -28,6 +29,7 @@ const createToolRoutes = (db) => {
             body('es_favorito').optional().isBoolean(),
             body('categories').optional().isArray()
         ],
+        validate,
         toolController.create.bind(toolController)
     );
 
