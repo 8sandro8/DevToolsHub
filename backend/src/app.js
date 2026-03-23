@@ -8,6 +8,7 @@ const cors = require('cors');
 const path = require('path');
 const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
+const createTagRoutes = require('./routes/tag.routes');
 const db = require('./config/database');
 
 const app = express();
@@ -66,7 +67,8 @@ app.get('/api', (req, res) => {
         endpoints: {
             health: '/health',
             tools: '/api/tools',
-            categories: '/api/categories'
+            categories: '/api/categories',
+            tags: '/api/tags'
         }
     });
 });
@@ -74,6 +76,7 @@ app.get('/api', (req, res) => {
 // API Routes
 app.use('/api/tools', createToolRoutes(db));
 app.use('/api/categories', createCategoryRoutes(db));
+app.use('/api/tags', createTagRoutes(db));
 
 // 404 handler
 app.use((req, res) => {

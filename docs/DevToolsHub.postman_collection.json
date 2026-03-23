@@ -1,0 +1,253 @@
+{
+  "info": {
+    "name": "DevToolsHub API",
+    "description": "Colección de requests para la API de DevToolsHub\n\nURL Base: {{baseUrl}}\n\nEsta colección incluye ejemplos para todos los endpoints del backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4001/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}", "health"]
+            },
+            "description": "Verifica el estado de la API"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "item": [
+        {
+          "name": "Get All Tools",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tools?buscar=&categoria=&favorito=&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools"],
+              "query": [
+                {
+                  "key": "buscar",
+                  "value": "",
+                  "description": "Texto a buscar en nombre o descripción"
+                },
+                {
+                  "key": "categoria",
+                  "value": "",
+                  "description": "ID de categoría para filtrar"
+                },
+                {
+                  "key": "favorito",
+                  "value": "",
+                  "description": "Filtrar por favoritos (true/false)"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número de página"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Resultados por página"
+                }
+              ]
+            },
+            "description": "Obtiene todas las herramientas con filtros opcionales"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tool by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/tools/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools", ":id"]
+            },
+            "description": "Obtiene una herramienta específica por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Tool",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/tools",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools"]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"VS Code\",\n  \"descripcion\": \"Editor de código fuente gratuito y multiplataforma desarrollado por Microsoft\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 5,\n  \"es_favorito\": true,\n  \"categories\": [1, 2]\n}"
+            },
+            "description": "Crea una nueva herramienta"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Tool",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/tools/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools", ":id"]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"VS Code Updated\",\n  \"descripcion\": \"Descripción actualizada del editor\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 4,\n  \"es_favorito\": false,\n  \"categories\": [1]\n}"
+            },
+            "description": "Actualiza una herramienta existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Tool",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/tools/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools", ":id"]
+            },
+            "description": "Archiva (soft delete) una herramienta"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Favorite",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/tools/:id/favorito",
+              "host": ["{{baseUrl}}"],
+              "path": ["tools", ":id", "favorito"]
+            },
+            "description": "Alterna el estado de favorito de una herramienta"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            },
+            "description": "Obtiene todas las categorías"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Category by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", ":id"]
+            },
+            "description": "Obtiene una categoría específica por su ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Desarrollo Web\",\n  \"color\": \"#3b82f6\"\n}"
+            },
+            "description": "Crea una nueva categoría"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", ":id"]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Desarrollo Web Actualizado\",\n  \"color\": \"#2563eb\"\n}"
+            },
+            "description": "Actualiza una categoría existente"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/categories/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", ":id"]
+            },
+            "description": "Elimina una categoría"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

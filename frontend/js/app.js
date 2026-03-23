@@ -19,6 +19,7 @@ const _CONFIG = {
 const _state = {
     tools: [],
     categories: [],
+    tags: [],
     filters: {
         search: '',
         category: '',
@@ -111,6 +112,10 @@ const _API = {
 
     healthCheck() {
         return this.request('/health');
+    },
+
+    getTags() {
+        return this.request('/tags');
     }
 };
 
@@ -244,6 +249,18 @@ const ToolCard = {
                     textContent: cat.nombre
                 });
                 categoriesDiv.appendChild(catSpan);
+            });
+        }
+        
+        // Render tags
+        const tagsContainer = card.querySelector('.tool-tags');
+        if (tagsContainer && tool.tags && tool.tags.length > 0) {
+            tool.tags.forEach(tag => {
+                const tagSpan = _DOM.createElement('span', 'tool-tag', {
+                    textContent: tag.nombre,
+                    style: `background-color: ${tag.color || '#6c757d'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-right: 4px;`
+                });
+                tagsContainer.appendChild(tagSpan);
             });
         }
         
@@ -589,6 +606,14 @@ const Modal = {
                 const categoryIds = editingTool.categories.map(c => c.id);
                 CategorySelect.setSelected(categoryIds);
             }
+            
+            // Set selected tags
+            if (TagManager && editingTool.tags && editingTool.tags.length > 0) {
+                const tagIds = editingTool.tags.map(t => t.id);
+                TagManager.renderTagSelect(tagIds);
+            } else if (TagManager) {
+                TagManager.renderTagSelect([]);
+            }
         } else {
             // Add mode
             title.textContent = 'Agregar Herramienta';
@@ -596,6 +621,11 @@ const Modal = {
             _DOM.$('#tool-rating').value = 3;
             if (ratingDisplay) {
                 ratingDisplay.textContent = '★★★☆☆';
+            }
+            
+            // Render tag select (empty for new tool)
+            if (TagManager) {
+                TagManager.renderTagSelect([]);
             }
         }
         
@@ -679,7 +709,8 @@ const ToolForm = {
             url: formData.get('url')?.trim() || null,
             logo_url: formData.get('logo_url')?.trim() || null,
             rating: parseInt(formData.get('rating'), 10) || 3,
-            categorias: CategorySelect.getSelected()
+            categories: CategorySelect.getSelected(),
+            tags: TagManager ? TagManager.getSelectedTags() : []
         };
         
         // Basic validation
@@ -1028,6 +1059,10 @@ const ListView = {
             _state.categories = catsData.categories || catsData || [];
             CategoryFilter.render(_state.categories);
             CategorySelect.render(_state.categories);
+            
+            // Load tags
+            const tagsData = await _API.getTags();
+            _state.tags = tagsData.tags || tagsData || [];
             
             // Load tools
             await this.loadTools();

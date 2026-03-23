@@ -38,6 +38,13 @@ class BaseRepository {
     }
 
     delete(id) {
+        // For tool table, use soft delete (es_archivado = 1)
+        if (this.tableName === 'tool') {
+            const sql = `UPDATE ${this.tableName} SET es_archivado = 1, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = ?`;
+            this.db.prepare(sql).run(id);
+            return this.findById(id);
+        }
+        // For other tables, use hard delete
         const sql = `DELETE FROM ${this.tableName} WHERE id = ?`;
         return this.db.prepare(sql).run(id);
     }
