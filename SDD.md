@@ -222,6 +222,18 @@ END;
   - **Impacto:** Búsqueda rápida y relevante desde el MVP
   - **Estado:** Completada
 
+- [2026-03-23] - **Bootstrap 5 como Framework de UI**
+  - **Motivación:** Los profes指定aron Bootstrap como referencia visual para el frontend
+  - **Alternativas consideradas:** Tailwind CSS (no cubierto en clase), CSS puro (más trabajo)
+  - **Impacto:** UI responsiva con componentes preconstruidos, consistencia visual
+  - **Estado:** Completada
+
+- [2026-03-23] - **Mejora Página de Detalle**
+  - **Motivación:** La página detalle necesitaba mejor layout y UX
+  - **Cambios:** Layout más espacioso, truncamiento de descripción con "Leer más", badges de categorías con gradiente, botones de acción (favorito/editar/eliminar/visitar)
+  - **Impacto:** Mejor experiencia de usuario en la vista de detalle
+  - **Estado:** Completada
+
 ## 6. Estructura de Archivos del Proyecto
 
 ```
