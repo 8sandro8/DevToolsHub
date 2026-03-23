@@ -1,6 +1,6 @@
 /**
  * DevToolsHub - Frontend Application
- * ES6+ Vanilla JavaScript
+ * ES6+ Vanilla JavaScript with Bootstrap 5
  */
 
 // ============================================
@@ -22,6 +22,7 @@ const _state = {
     filters: {
         search: '',
         category: '',
+        favorito: false,
         page: 1
     },
     pagination: {
@@ -50,7 +51,8 @@ const _API = {
         try {
             const response = await fetch(url, config);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.message || `HTTP error! status: ${response.status}`);
             }
             return await response.json();
         } catch (error) {
@@ -65,8 +67,15 @@ const _API = {
         if (filters.category) params.append('categoria', filters.category);
         if (filters.page) params.append('page', filters.page);
         if (filters.limit) params.append('limit', filters.limit);
+        if (filters.favorito) params.append('favorito', 'true');
         
         return this.request(`/tools?${params.toString()}`);
+    },
+
+    toggleFavorite(toolId) {
+        return this.request(`/tools/${toolId}/favorito`, {
+            method: 'PATCH'
+        });
     },
 
     getToolById(id) {
@@ -75,6 +84,29 @@ const _API = {
 
     getCategories() {
         return this.request('/categories');
+    },
+
+    // Crear nueva herramienta
+    createTool(toolData) {
+        return this.request('/tools', {
+            method: 'POST',
+            body: JSON.stringify(toolData)
+        });
+    },
+
+    // Actualizar herramienta existente
+    updateTool(id, toolData) {
+        return this.request(`/tools/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(toolData)
+        });
+    },
+
+    // Eliminar herramienta
+    deleteTool(id) {
+        return this.request(`/tools/${id}`, {
+            method: 'DELETE'
+        });
     },
 
     healthCheck() {
@@ -162,41 +194,50 @@ const _Utils = {
             month: 'long',
             day: 'numeric'
         });
+    },
+
+    getDomainFromUrl(urlString) {
+        try {
+            const url = new URL(urlString);
+            return url.hostname.replace('www.', '');
+        } catch (e) {
+            return urlString;
+        }
+    },
+
+    truncateText(text, maxLength) {
+        if (!text || text.length <= maxLength) return { text, truncated: false };
+        return {
+            text: text.substring(0, maxLength).trim() + '...',
+            truncated: true
+        };
     }
 };
 
 // ============================================
-// Tool Card Component
+// Tool Card Component (Bootstrap Card)
 // ============================================
 const ToolCard = {
     render(tool) {
-        const card = _DOM.createElement('article', 'tool-card');
+        // Use the Bootstrap template structure
+        const template = _DOM.$('#tool-card-template');
+        const card = template.content.cloneNode(true);
         
-        const logo = _DOM.createElement('img', 'tool-logo', {
-            src: tool.logo_url || _CONFIG.DEFAULT_LOGO,
-            alt: `${tool.nombre} logo`
-        });
+        // Set card data
+        const logo = card.querySelector('.tool-logo');
+        logo.src = tool.logo_url || _CONFIG.DEFAULT_LOGO;
+        logo.alt = `${tool.nombre} logo`;
         
-        const ratingStars = _DOM.createElement('span', 'rating-stars', {
-            textContent: _Utils.formatRating(tool.rating || 0)
-        });
+        const ratingStars = card.querySelector('.rating-stars');
+        ratingStars.textContent = _Utils.formatRating(tool.rating || 0);
         
-        const metaDiv = _DOM.createElement('div', 'tool-meta');
-        metaDiv.appendChild(ratingStars);
+        const name = card.querySelector('.tool-name');
+        name.textContent = tool.nombre;
         
-        const headerDiv = _DOM.createElement('div', 'tool-header');
-        headerDiv.appendChild(logo);
-        headerDiv.appendChild(metaDiv);
+        const description = card.querySelector('.tool-description');
+        description.textContent = tool.descripcion || 'Sin descripción';
         
-        const name = _DOM.createElement('h3', 'tool-name', {
-            textContent: tool.nombre
-        });
-        
-        const description = _DOM.createElement('p', 'tool-description', {
-            textContent: tool.descripcion || 'Sin descripción'
-        });
-        
-        const categoriesDiv = _DOM.createElement('div', 'tool-categories');
+        const categoriesDiv = card.querySelector('.tool-categories');
         if (tool.categories && tool.categories.length > 0) {
             tool.categories.forEach(cat => {
                 const catSpan = _DOM.createElement('span', 'tool-category', {
@@ -206,34 +247,24 @@ const ToolCard = {
             });
         }
         
-        const detailLink = _DOM.createElement('a', 'btn btn-primary btn-detail', {
-            href: `detalle.html?id=${tool.id}`,
-            textContent: 'Ver detalle'
-        });
+        const detailLink = card.querySelector('.btn-detail');
+        detailLink.href = `detalle.html?id=${tool.id}`;
         
-        const favoriteBtn = _DOM.createElement('button', 'btn btn-icon btn-favorite', {
-            'aria-label': tool.es_favorito ? 'Quitar de favoritos' : 'Marcar como favorito',
-            'data-id': tool.id
-        });
+        const editBtn = card.querySelector('.btn-edit');
+        editBtn.dataset.id = tool.id;
         
-        const favIcon = _DOM.createElement('span', 'favorite-icon', {
-            textContent: tool.es_favorito ? '★' : '☆'
-        });
-        favoriteBtn.appendChild(favIcon);
+        const favoriteBtn = card.querySelector('.btn-favorite');
+        favoriteBtn.dataset.id = tool.id;
+        
+        const favIcon = favoriteBtn.querySelector('.favorite-icon');
+        favIcon.textContent = tool.es_favorito ? '★' : '☆';
         
         if (tool.es_favorito) {
             favoriteBtn.classList.add('favorited');
+            favoriteBtn.setAttribute('aria-label', 'Quitar de favoritos');
+        } else {
+            favoriteBtn.setAttribute('aria-label', 'Marcar como favorito');
         }
-        
-        const actionsDiv = _DOM.createElement('div', 'tool-actions');
-        actionsDiv.appendChild(detailLink);
-        actionsDiv.appendChild(favoriteBtn);
-        
-        card.appendChild(headerDiv);
-        card.appendChild(name);
-        card.appendChild(description);
-        card.appendChild(categoriesDiv);
-        card.appendChild(actionsDiv);
         
         return card;
     }
@@ -266,7 +297,50 @@ const CategoryFilter = {
 };
 
 // ============================================
-// Pagination Component
+// Category Select for Modal
+// ============================================
+const CategorySelect = {
+    render(categories) {
+        const select = _DOM.$('#tool-categories');
+        if (!select) return;
+        
+        _DOM.clearElement(select);
+        
+        categories.forEach(cat => {
+            const option = _DOM.createElement('option', '', {
+                value: cat.id,
+                textContent: cat.nombre
+            });
+            select.appendChild(option);
+        });
+    },
+    
+    // Set selected categories (for editing)
+    setSelected(categoryIds) {
+        const select = _DOM.$('#tool-categories');
+        if (!select) return;
+        
+        const options = select.querySelectorAll('option');
+        options.forEach(option => {
+            if (categoryIds.includes(parseInt(option.value, 10))) {
+                option.selected = true;
+            } else {
+                option.selected = false;
+            }
+        });
+    },
+    
+    // Get selected category IDs
+    getSelected() {
+        const select = _DOM.$('#tool-categories');
+        if (!select) return [];
+        
+        return Array.from(select.selectedOptions).map(option => parseInt(option.value, 10));
+    }
+};
+
+// ============================================
+// Pagination Component (Bootstrap)
 // ============================================
 const Pagination = {
     render(pagination) {
@@ -279,13 +353,19 @@ const Pagination = {
         
         const { page, totalPages } = pagination;
         
+        // Create nav wrapper
+        const nav = _DOM.createElement('nav', 'd-flex justify-content-center');
+        const ul = _DOM.createElement('ul', 'pagination');
+        
         // Previous button
-        const prevBtn = _DOM.createElement('button', 'pagination-btn', {
-            textContent: '← Anterior',
-            disabled: page === 1,
+        const prevLi = _DOM.createElement('li', `page-item ${page === 1 ? 'disabled' : ''}`);
+        const prevLink = _DOM.createElement('a', 'page-link', {
+            href: '#',
+            textContent: 'Anterior',
             'data-page': page - 1
         });
-        container.appendChild(prevBtn);
+        prevLi.appendChild(prevLink);
+        ul.appendChild(prevLi);
         
         // Page numbers
         const maxVisible = 5;
@@ -297,50 +377,62 @@ const Pagination = {
         }
         
         if (start > 1) {
-            const firstBtn = _DOM.createElement('button', 'pagination-btn', {
+            const firstLi = _DOM.createElement('li', 'page-item');
+            const firstLink = _DOM.createElement('a', 'page-link', {
+                href: '#',
                 textContent: '1',
                 'data-page': 1
             });
-            container.appendChild(firstBtn);
+            firstLi.appendChild(firstLink);
+            ul.appendChild(firstLi);
             
             if (start > 2) {
-                const dots = _DOM.createElement('span', 'pagination-info', {
-                    textContent: '...'
-                });
-                container.appendChild(dots);
+                const dotsLi = _DOM.createElement('li', 'page-item');
+                dotsLi.innerHTML = '<span class="page-link">...</span>';
+                ul.appendChild(dotsLi);
             }
         }
         
         for (let i = start; i <= end; i++) {
-            const pageBtn = _DOM.createElement('button', `pagination-btn ${i === page ? 'active' : ''}`, {
+            const pageLi = _DOM.createElement('li', `page-item ${i === page ? 'active' : ''}`);
+            const pageLink = _DOM.createElement('a', 'page-link', {
+                href: '#',
                 textContent: i,
                 'data-page': i
             });
-            container.appendChild(pageBtn);
+            pageLi.appendChild(pageLink);
+            ul.appendChild(pageLi);
         }
         
         if (end < totalPages) {
             if (end < totalPages - 1) {
-                const dots = _DOM.createElement('span', 'pagination-info', {
-                    textContent: '...'
-                });
-                container.appendChild(dots);
+                const dotsLi = _DOM.createElement('li', 'page-item');
+                dotsLi.innerHTML = '<span class="page-link">...</span>';
+                ul.appendChild(dotsLi);
             }
             
-            const lastBtn = _DOM.createElement('button', 'pagination-btn', {
+            const lastLi = _DOM.createElement('li', 'page-item');
+            const lastLink = _DOM.createElement('a', 'page-link', {
+                href: '#',
                 textContent: totalPages,
                 'data-page': totalPages
             });
-            container.appendChild(lastBtn);
+            lastLi.appendChild(lastLink);
+            ul.appendChild(lastLi);
         }
         
         // Next button
-        const nextBtn = _DOM.createElement('button', 'pagination-btn', {
-            textContent: 'Siguiente →',
-            disabled: page === totalPages,
+        const nextLi = _DOM.createElement('li', `page-item ${page === totalPages ? 'disabled' : ''}`);
+        const nextLink = _DOM.createElement('a', 'page-link', {
+            href: '#',
+            textContent: 'Siguiente',
             'data-page': page + 1
         });
-        container.appendChild(nextBtn);
+        nextLi.appendChild(nextLink);
+        ul.appendChild(nextLi);
+        
+        nav.appendChild(ul);
+        container.appendChild(nav);
     }
 };
 
@@ -367,9 +459,321 @@ const ResultsCount = {
 };
 
 // ============================================
+// Toast Notifications (Bootstrap Toast)
+// ============================================
+const Toast = {
+    show(message, type = 'info') {
+        const container = _DOM.$('#toast-container');
+        if (!container) return;
+        
+        const toastId = 'toast-' + Date.now();
+        
+        const toast = _DOM.createElement('div', `toast show`, {
+            id: toastId,
+            role: 'alert',
+            'aria-live': 'assertive',
+            'aria-atomic': 'true'
+        });
+        
+        // Set background color based on type
+        const bgClass = {
+            'success': 'bg-success',
+            'error': 'bg-danger',
+            'info': 'bg-primary',
+            'warning': 'bg-warning'
+        };
+        
+        toast.style.backgroundColor = type === 'success' ? '#10b981' : 
+                                       type === 'error' ? '#ef4444' : 
+                                       type === 'warning' ? '#f59e0b' : '#3b82f6';
+        
+        toast.innerHTML = `
+            <div class="toast-body d-flex justify-content-between align-items-center text-white">
+                <span>${message}</span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('toast-hide');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    },
+    
+    success(message) {
+        this.show(message, 'success');
+    },
+    
+    error(message) {
+        this.show(message, 'error');
+    },
+    
+    info(message) {
+        this.show(message, 'info');
+    }
+};
+
+// ============================================
+// Modal Component (Bootstrap Modal)
+// ============================================
+const Modal = {
+    isOpen: false,
+    editingToolId: null,
+    bootstrapModal: null,
+    
+    init() {
+        const modalEl = _DOM.$('#tool-modal');
+        if (modalEl) {
+            this.bootstrapModal = new bootstrap.Modal(modalEl);
+        }
+    },
+    
+    open(editingTool = null) {
+        // Initialize bootstrap modal if not already
+        if (!this.bootstrapModal) {
+            this.init();
+        }
+        
+        const form = _DOM.$('#tool-form');
+        const title = _DOM.$('#modal-title');
+        const ratingDisplay = _DOM.$('#rating-display');
+        
+        if (!form) return;
+        
+        // Reset form validation
+        form.classList.remove('was-validated');
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        
+        // Reset form
+        form.reset();
+        this.clearErrors();
+        
+        // Clear category selection
+        const categorySelect = _DOM.$('#tool-categories');
+        if (categorySelect) {
+            Array.from(categorySelect.options).forEach(opt => opt.selected = false);
+        }
+        
+        // Reset rating display
+        if (ratingDisplay) {
+            ratingDisplay.textContent = '★★★☆☆';
+        }
+        
+        // Set editing mode
+        this.editingToolId = editingTool ? editingTool.id : null;
+        
+        if (editingTool) {
+            // Edit mode - pre-fill form
+            title.textContent = 'Editar Herramienta';
+            _DOM.$('#tool-id').value = editingTool.id;
+            _DOM.$('#tool-name').value = editingTool.nombre || '';
+            _DOM.$('#tool-description').value = editingTool.descripcion || '';
+            _DOM.$('#tool-url').value = editingTool.url || '';
+            _DOM.$('#tool-logo').value = editingTool.logo_url || '';
+            
+            const rating = editingTool.rating || 3;
+            _DOM.$('#tool-rating').value = rating;
+            if (ratingDisplay) {
+                ratingDisplay.textContent = _Utils.formatRating(rating);
+            }
+            
+            // Set selected categories
+            if (editingTool.categories && editingTool.categories.length > 0) {
+                const categoryIds = editingTool.categories.map(c => c.id);
+                CategorySelect.setSelected(categoryIds);
+            }
+        } else {
+            // Add mode
+            title.textContent = 'Agregar Herramienta';
+            _DOM.$('#tool-id').value = '';
+            _DOM.$('#tool-rating').value = 3;
+            if (ratingDisplay) {
+                ratingDisplay.textContent = '★★★☆☆';
+            }
+        }
+        
+        // Show bootstrap modal
+        this.bootstrapModal.show();
+        this.isOpen = true;
+        
+        // Focus first input
+        setTimeout(() => {
+            _DOM.$('#tool-name')?.focus();
+        }, 100);
+    },
+    
+    close() {
+        if (this.bootstrapModal) {
+            this.bootstrapModal.hide();
+        }
+        this.isOpen = false;
+        this.editingToolId = null;
+    },
+    
+    clearErrors() {
+        const errors = _DOM.$$('.invalid-feedback');
+        errors.forEach(el => el.textContent = '');
+        
+        const inputs = _DOM.$$('#tool-form input, #tool-form textarea, #tool-form select');
+        inputs.forEach(el => el.classList.remove('is-invalid'));
+    },
+    
+    showError(fieldName, message) {
+        const errorEl = _DOM.$('#error-' + fieldName);
+        const inputEl = _DOM.$('#tool-' + (fieldName === 'logo_url' ? 'logo' : fieldName));
+        
+        if (inputEl) {
+            inputEl.classList.add('is-invalid');
+        }
+        if (errorEl) {
+            errorEl.textContent = message;
+        }
+    },
+    
+    setLoading(loading) {
+        const submitBtn = _DOM.$('#btn-submit');
+        const btnText = submitBtn?.querySelector('.btn-text-submit');
+        const btnLoading = submitBtn?.querySelector('.btn-loading');
+        
+        if (!submitBtn) return;
+        
+        if (loading) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('btn-loading-state');
+            if (btnText) btnText.classList.add('d-none');
+            if (btnLoading) btnLoading.classList.remove('d-none');
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-loading-state');
+            if (btnText) btnText.classList.remove('d-none');
+            if (btnLoading) btnLoading.classList.add('d-none');
+        }
+    }
+};
+
+// ============================================
+// Form Handler
+// ============================================
+const ToolForm = {
+    async handleSubmit(e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        Modal.clearErrors();
+        
+        // Get form data
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        // Build tool data object
+        const toolData = {
+            nombre: formData.get('nombre')?.trim(),
+            descripcion: formData.get('descripcion')?.trim() || null,
+            url: formData.get('url')?.trim() || null,
+            logo_url: formData.get('logo_url')?.trim() || null,
+            rating: parseInt(formData.get('rating'), 10) || 3,
+            categorias: CategorySelect.getSelected()
+        };
+        
+        // Basic validation
+        if (!toolData.nombre) {
+            Modal.showError('nombre', 'El nombre es requerido');
+            return;
+        }
+        
+        if (toolData.nombre.length > 100) {
+            Modal.showError('nombre', 'El nombre no puede exceder 100 caracteres');
+            return;
+        }
+        
+        if (toolData.url && !this.isValidUrl(toolData.url)) {
+            Modal.showError('url', 'URL inválida');
+            return;
+        }
+        
+        if (toolData.logo_url && !this.isValidUrl(toolData.logo_url)) {
+            Modal.showError('logo_url', 'URL de logo inválida');
+            return;
+        }
+        
+        try {
+            Modal.setLoading(true);
+            
+            let result;
+            if (Modal.editingToolId) {
+                // Update existing tool
+                result = await _API.updateTool(Modal.editingToolId, toolData);
+                Toast.success('Herramienta actualizada correctamente');
+            } else {
+                // Create new tool
+                result = await _API.createTool(toolData);
+                Toast.success('Herramienta creada correctamente');
+            }
+            
+            // Close modal
+            Modal.close();
+            
+            // Reload tools list
+            await ListView.loadTools();
+            
+        } catch (error) {
+            Toast.error(error.message || 'Error al guardar la herramienta');
+        } finally {
+            Modal.setLoading(false);
+        }
+    },
+    
+    isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    },
+    
+    setupEventListeners() {
+        const form = _DOM.$('#tool-form');
+        if (form) {
+            form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
+        
+        // Rating input change
+        const ratingInput = _DOM.$('#tool-rating');
+        const ratingDisplay = _DOM.$('#rating-display');
+        if (ratingInput && ratingDisplay) {
+            ratingInput.addEventListener('input', (e) => {
+                ratingDisplay.textContent = _Utils.formatRating(parseInt(e.target.value, 10));
+            });
+        }
+        
+        // Modal close handler - Bootstrap handles this automatically
+        _DOM.$('#tool-modal')?.addEventListener('hidden.bs.modal', () => {
+            Modal.isOpen = false;
+            Modal.editingToolId = null;
+        });
+        
+        // Add tool button
+        const addBtn = _DOM.$('#btn-add-tool');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => Modal.open());
+        }
+    }
+};
+
+// ============================================
 // Detail View Component
 // ============================================
 const DetailView = {
+    currentTool: null,
+
     async render(toolId) {
         const container = _DOM.$('#tool-detail');
         if (!container) return;
@@ -377,99 +781,238 @@ const DetailView = {
         try {
             const data = await _API.getToolById(toolId);
             const tool = data.tool || data;
+            this.currentTool = tool;
             
             _DOM.clearElement(container);
             
-            const backLink = _DOM.createElement('a', 'back-link', {
+            // Back link
+            const backLink = _DOM.createElement('a', 'back-link mb-4 d-inline-flex align-items-center', {
                 href: 'index.html',
-                textContent: '← Volver al catálogo'
+                innerHTML: '<i class="bi bi-arrow-left me-2"></i>Volver al catálogo'
             });
             
-            const headerDiv = _DOM.createElement('div', 'tool-detail-header');
+            // Main card
+            const card = _DOM.createElement('div', 'detail-card');
             
-            const logo = _DOM.createElement('img', 'tool-detail-logo', {
+            // Header section with logo and title
+            const headerSection = _DOM.createElement('div', 'detail-header');
+            
+            // Logo
+            const logoWrapper = _DOM.createElement('div', 'detail-logo-wrapper');
+            const logo = _DOM.createElement('img', 'detail-logo', {
                 src: tool.logo_url || _CONFIG.DEFAULT_LOGO,
                 alt: `${tool.nombre} logo`
             });
+            logoWrapper.appendChild(logo);
             
-            const infoDiv = _DOM.createElement('div', 'tool-detail-info');
+            // Title and rating section
+            const titleSection = _DOM.createElement('div', 'detail-title-section flex-grow-1');
             
-            const title = _DOM.createElement('h2', 'tool-detail-title', {
+            const title = _DOM.createElement('h1', 'detail-title mb-2', {
                 textContent: tool.nombre
             });
             
-            const description = _DOM.createElement('p', 'tool-detail-description', {
-                textContent: tool.descripcion || 'Sin descripción'
+            // Rating
+            const ratingDiv = _DOM.createElement('div', 'detail-rating mb-3');
+            const ratingStars = _DOM.createElement('span', 'rating-stars text-warning me-2', {
+                textContent: _Utils.formatRating(tool.rating || 0)
             });
-            
-            const metaDiv = _DOM.createElement('div', 'tool-detail-meta');
-            
-            const ratingSpan = _DOM.createElement('span', 'tool-detail-rating', {
-                textContent: `Valoración: ${_Utils.formatRating(tool.rating || 0)}`
+            const ratingText = _DOM.createElement('span', 'text-muted', {
+                textContent: `${tool.rating || 0}/5`
             });
+            ratingDiv.appendChild(ratingStars);
+            ratingDiv.appendChild(ratingText);
             
-            const createdSpan = _DOM.createElement('span', '', {
-                textContent: `Creado: ${_Utils.formatDate(tool.fecha_creacion)}`
+            titleSection.appendChild(title);
+            titleSection.appendChild(ratingDiv);
+            
+            headerSection.appendChild(logoWrapper);
+            headerSection.appendChild(titleSection);
+            
+            // Action buttons
+            const actionsDiv = _DOM.createElement('div', 'detail-actions mb-4');
+            
+            // Favorite button
+            const favBtn = _DOM.createElement('button', `btn btn-action btn-favorite-action ${tool.es_favorito ? 'favorited' : ''}`, {
+                'data-id': tool.id,
+                title: tool.es_favorito ? 'Quitar de favoritos' : 'Añadir a favoritos'
             });
+            favBtn.innerHTML = tool.es_favorito 
+                ? '<i class="bi bi-star-fill"></i> Favorito' 
+                : '<i class="bi bi-star"></i> Favorito';
+            favBtn.onclick = () => this.toggleFavorite(tool.id);
+            actionsDiv.appendChild(favBtn);
             
-            const updatedSpan = _DOM.createElement('span', '', {
-                textContent: `Actualizado: ${_Utils.formatDate(tool.fecha_actualizacion)}`
+            // Edit button
+            const editBtn = _DOM.createElement('button', 'btn btn-action btn-edit-action', {
+                'data-id': tool.id,
+                title: 'Editar herramienta'
             });
+            editBtn.innerHTML = '<i class="bi bi-pencil"></i> Editar';
+            editBtn.onclick = () => this.openEditModal(tool);
+            actionsDiv.appendChild(editBtn);
             
-            metaDiv.appendChild(ratingSpan);
-            metaDiv.appendChild(createdSpan);
-            metaDiv.appendChild(updatedSpan);
+            // Delete button
+            const deleteBtn = _DOM.createElement('button', 'btn btn-action btn-delete-action', {
+                'data-id': tool.id,
+                title: 'Eliminar herramienta'
+            });
+            deleteBtn.innerHTML = '<i class="bi bi-trash"></i> Eliminar';
+            deleteBtn.onclick = () => this.confirmDelete(tool.id, tool.nombre);
+            actionsDiv.appendChild(deleteBtn);
             
-            infoDiv.appendChild(title);
-            infoDiv.appendChild(description);
-            infoDiv.appendChild(metaDiv);
+            card.appendChild(headerSection);
+            card.appendChild(actionsDiv);
             
+            // Description section
+            const descSection = _DOM.createElement('div', 'detail-section');
+            const descTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Descripción'
+            });
+            descSection.appendChild(descTitle);
+            
+            const descContent = _DOM.createElement('div', 'detail-description');
+            const { text: descText, truncated } = _Utils.truncateText(tool.descripcion || 'Sin descripción', 300);
+            
+            if (truncated) {
+                descContent.innerHTML = `
+                    <p class="description-text">${_Utils.escapeHtml(descText)}</p>
+                    <button class="btn btn-link text-primary p-0 read-more-btn" data-full="${_Utils.escapeHtml(tool.descripcion)}">
+                        Leer más <i class="bi bi-arrow-down"></i>
+                    </button>
+                `;
+            } else {
+                descContent.innerHTML = `<p class="description-text">${_Utils.escapeHtml(tool.descripcion || 'Sin descripción')}</p>`;
+            }
+            descSection.appendChild(descContent);
+            
+            card.appendChild(descSection);
+            
+            // Website section (if URL exists)
             if (tool.url) {
-                const urlLink = _DOM.createElement('a', 'tool-detail-url', {
-                    href: tool.url,
-                    target: '_blank',
-                    rel: 'noopener noreferrer',
-                    textContent: '🔗 Visitar sitio web'
+                const urlSection = _DOM.createElement('div', 'detail-section');
+                const urlTitle = _DOM.createElement('h3', 'detail-section-title', {
+                    textContent: 'Sitio Web'
                 });
-                infoDiv.appendChild(urlLink);
+                urlSection.appendChild(urlTitle);
+                
+                const urlContent = _DOM.createElement('div', 'detail-url');
+                const domain = _Utils.getDomainFromUrl(tool.url);
+                urlContent.innerHTML = `
+                    <a href="${tool.url}" target="_blank" rel="noopener noreferrer" class="btn btn-url">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>
+                        <span class="url-domain">${domain}</span>
+                    </a>
+                `;
+                urlSection.appendChild(urlContent);
+                
+                card.appendChild(urlSection);
             }
             
-            headerDiv.appendChild(logo);
-            headerDiv.appendChild(infoDiv);
-            
-            const categoriesDiv = _DOM.createElement('div', 'tool-detail-categories');
-            const catTitle = _DOM.createElement('h3', '', {
+            // Categories section
+            const catSection = _DOM.createElement('div', 'detail-section');
+            const catTitle = _DOM.createElement('h3', 'detail-section-title', {
                 textContent: 'Categorías'
             });
-            categoriesDiv.appendChild(catTitle);
+            catSection.appendChild(catTitle);
             
-            const catContainer = _DOM.createElement('div', 'tool-categories');
+            const catContainer = _DOM.createElement('div', 'detail-categories');
             if (tool.categories && tool.categories.length > 0) {
                 tool.categories.forEach(cat => {
-                    const catSpan = _DOM.createElement('span', 'tool-category', {
+                    const catBadge = _DOM.createElement('span', 'category-badge', {
                         textContent: cat.nombre
                     });
-                    catContainer.appendChild(catSpan);
+                    catContainer.appendChild(catBadge);
                 });
             } else {
-                const noCat = _DOM.createElement('p', '', {
+                const noCat = _DOM.createElement('span', 'text-muted fst-italic', {
                     textContent: 'Sin categorías'
                 });
                 catContainer.appendChild(noCat);
             }
-            categoriesDiv.appendChild(catContainer);
+            catSection.appendChild(catContainer);
+            
+            card.appendChild(catSection);
+            
+            // Metadata section
+            const metaSection = _DOM.createElement('div', 'detail-section detail-meta-section');
+            
+            const createdMeta = _DOM.createElement('div', 'meta-item');
+            createdMeta.innerHTML = `
+                <i class="bi bi-calendar-plus me-2 text-muted"></i>
+                <span class="meta-label">Creado:</span>
+                <span class="meta-value">${_Utils.formatDate(tool.fecha_creacion)}</span>
+            `;
+            
+            const updatedMeta = _DOM.createElement('div', 'meta-item');
+            updatedMeta.innerHTML = `
+                <i class="bi bi-clock-history me-2 text-muted"></i>
+                <span class="meta-label">Actualizado:</span>
+                <span class="meta-value">${_Utils.formatDate(tool.fecha_actualizacion)}</span>
+            `;
+            
+            metaSection.appendChild(createdMeta);
+            metaSection.appendChild(updatedMeta);
+            
+            card.appendChild(metaSection);
             
             container.appendChild(backLink);
-            container.appendChild(headerDiv);
-            container.appendChild(categoriesDiv);
+            container.appendChild(card);
+            
+            // Setup read more button event
+            this.setupReadMoreButton();
             
         } catch (error) {
             _DOM.clearElement(container);
-            const errorMsg = _DOM.createElement('div', 'error-message', {
+            const errorMsg = _DOM.createElement('div', 'alert alert-danger', {
                 innerHTML: `<p>Error al cargar los detalles de la herramienta.</p>
-                           <button class="btn btn-retry" onclick="location.reload()">Reintentar</button>`
+                           <button class="btn btn-outline-danger" onclick="location.reload()">Reintentar</button>`
             });
             container.appendChild(errorMsg);
+        }
+    },
+
+    setupReadMoreButton() {
+        const readMoreBtn = _DOM.$('.read-more-btn');
+        if (readMoreBtn) {
+            readMoreBtn.addEventListener('click', () => {
+                const fullText = readMoreBtn.dataset.full;
+                const descText = _DOM.$('.description-text');
+                if (descText) {
+                    descText.textContent = fullText;
+                    readMoreBtn.remove();
+                }
+            });
+        }
+    },
+
+    async toggleFavorite(toolId) {
+        try {
+            await _API.toggleFavorite(toolId);
+            Toast.success('Estado de favorito actualizado');
+            await this.render(toolId);
+        } catch (error) {
+            Toast.error('Error al actualizar favorito');
+        }
+    },
+
+    openEditModal(tool) {
+        Modal.open(tool);
+    },
+
+    confirmDelete(toolId, toolName) {
+        if (confirm(`¿Estás seguro de que deseas eliminar "${toolName}"?\n\nEsta acción no se puede deshacer.`)) {
+            this.deleteTool(toolId);
+        }
+    },
+
+    async deleteTool(toolId) {
+        try {
+            await _API.request(`/tools/${toolId}`, { method: 'DELETE' });
+            Toast.success('Herramienta eliminada correctamente');
+            window.location.href = 'index.html';
+        } catch (error) {
+            Toast.error('Error al eliminar la herramienta');
         }
     }
 };
@@ -484,12 +1027,16 @@ const ListView = {
             const catsData = await _API.getCategories();
             _state.categories = catsData.categories || catsData || [];
             CategoryFilter.render(_state.categories);
+            CategorySelect.render(_state.categories);
             
             // Load tools
             await this.loadTools();
             
             // Setup event listeners
             this.setupEventListeners();
+            
+            // Setup form handlers
+            ToolForm.setupEventListeners();
             
         } catch (error) {
             this.showError('Error al cargar los datos. Asegúrate de que el servidor esté funcionando.');
@@ -502,10 +1049,14 @@ const ListView = {
         
         // Show loading
         _DOM.clearElement(grid);
-        const spinner = _DOM.createElement('div', 'loading-spinner', {
-            innerHTML: '<div class="spinner"></div><p>Cargando herramientas...</p>'
-        });
-        grid.appendChild(spinner);
+        const spinnerContainer = _DOM.createElement('div', 'col-12 text-center py-5');
+        spinnerContainer.innerHTML = `
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando herramientas...</p>
+        `;
+        grid.appendChild(spinnerContainer);
         
         try {
             const data = await _API.getTools(_state.filters);
@@ -531,20 +1082,59 @@ const ListView = {
         _DOM.clearElement(grid);
         
         if (_state.tools.length === 0) {
-            const emptyMsg = _DOM.createElement('div', 'empty-message', {
+            const emptyMsg = _DOM.createElement('div', 'col-12 text-center py-5 empty-message', {
                 textContent: 'No se encontraron herramientas. Prueba con otros filtros.'
             });
             grid.appendChild(emptyMsg);
         } else {
             _state.tools.forEach((tool, index) => {
                 const card = ToolCard.render(tool);
-                card.style.animationDelay = `${index * 0.05}s`;
+                const cardElement = card.querySelector('.tool-card');
+                cardElement.style.animationDelay = `${index * 0.05}s`;
                 grid.appendChild(card);
             });
         }
         
         ResultsCount.render(_state.pagination);
         Pagination.render(_state.pagination);
+        
+        // Setup card action listeners after render
+        this.setupCardActions();
+    },
+    
+    setupCardActions() {
+        // Favorite buttons
+        const favoriteBtns = _DOM.$$('.btn-favorite');
+        favoriteBtns.forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const toolId = parseInt(btn.dataset.id, 10);
+                try {
+                    await _API.toggleFavorite(toolId);
+                    await this.loadTools();
+                } catch (error) {
+                    Toast.error('Error al cambiar estado de favorito');
+                }
+            };
+        });
+        
+        // Edit buttons
+        const editBtns = _DOM.$$('.btn-edit');
+        editBtns.forEach(btn => {
+            btn.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const toolId = parseInt(btn.dataset.id, 10);
+                try {
+                    const data = await _API.getToolById(toolId);
+                    const tool = data.tool || data;
+                    Modal.open(tool);
+                } catch (error) {
+                    Toast.error('Error al cargar los datos de la herramienta');
+                }
+            };
+        });
     },
     
     showError(message) {
@@ -552,8 +1142,8 @@ const ListView = {
         if (!grid) return;
         
         _DOM.clearElement(grid);
-        const errorMsg = _DOM.createElement('div', 'error-message', {
-            innerHTML: `<p>${message}</p><button class="btn btn-retry" onclick="App.init()">Reintentar</button>`
+        const errorMsg = _DOM.createElement('div', 'col-12 text-center py-5', {
+            innerHTML: `<div class="alert alert-danger">${message}</div><button class="btn btn-outline-danger" onclick="App.init()">Reintentar</button>`
         });
         grid.appendChild(errorMsg);
         
@@ -584,13 +1174,56 @@ const ListView = {
         const pagination = _DOM.$('#pagination');
         if (pagination) {
             pagination.addEventListener('click', (e) => {
-                if (e.target.classList.contains('pagination-btn') && !e.target.disabled) {
-                    const page = parseInt(e.target.dataset.page, 10);
+                const link = e.target.closest('.page-link');
+                if (link && !link.parentElement.classList.contains('disabled') && !link.parentElement.classList.contains('active')) {
+                    const page = parseInt(link.dataset.page, 10);
                     _state.filters.page = page;
                     this.loadTools();
                     
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
+            });
+        }
+        
+        // Nav link for favorites
+        const favLink = _DOM.$('a[href="?favoritos=true"]');
+        if (favLink) {
+            favLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                _state.filters.favorito = true;
+                _state.filters.page = 1;
+                
+                // Update URL without reload
+                const url = new URL(window.location);
+                url.searchParams.set('favoritos', 'true');
+                window.history.pushState({}, '', url);
+                
+                // Update active nav link
+                _DOM.$$('.nav-link').forEach(link => link.classList.remove('active'));
+                favLink.classList.add('active');
+                
+                this.loadTools();
+            });
+        }
+        
+        // Home link reset
+        const homeLink = _DOM.$('a[href="index.html"].nav-link');
+        if (homeLink) {
+            homeLink.addEventListener('click', () => {
+                _state.filters.favorito = false;
+                _state.filters.search = '';
+                _state.filters.category = '';
+                _state.filters.page = 1;
+                
+                // Clear URL params
+                const url = new URL(window.location);
+                url.searchParams.delete('favoritos');
+                window.history.pushState({}, '', url);
+                
+                const searchInput = _DOM.$('#search-input');
+                const categoryFilter = _DOM.$('#category-filter');
+                if (searchInput) searchInput.value = '';
+                if (categoryFilter) categoryFilter.value = '';
             });
         }
     }
@@ -601,6 +1234,20 @@ const ListView = {
 // ============================================
 const App = {
     init() {
+        // Check for favorites filter in URL
+        const favoritosParam = _Utils.getQueryParam('favoritos');
+        if (favoritosParam === 'true') {
+            _state.filters.favorito = true;
+        }
+        
+        // Update nav active state
+        if (_state.filters.favorito) {
+            const favLink = _DOM.$('a[href="?favoritos=true"]');
+            const homeLink = _DOM.$('a[href="index.html"].nav-link');
+            if (favLink) favLink.classList.add('active');
+            if (homeLink) homeLink.classList.remove('active');
+        }
+        
         if (_state.isDetailMode) {
             const toolId = _Utils.getQueryParam('id');
             if (toolId) {
