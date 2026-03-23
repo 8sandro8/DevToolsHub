@@ -27,7 +27,8 @@ const createToolRoutes = (db) => {
             body('url').optional().isURL().withMessage('URL inválida'),
             body('rating').optional().isInt({ min: 0, max: 5 }).withMessage('Rating debe ser 0-5'),
             body('es_favorito').optional().isBoolean(),
-            body('categories').optional().isArray()
+            body('categories').optional().isArray(),
+            body('tags').optional().isArray()
         ],
         validate,
         toolController.create.bind(toolController)
@@ -41,7 +42,8 @@ const createToolRoutes = (db) => {
             body('url').optional().isURL(),
             body('rating').optional().isInt({ min: 0, max: 5 }),
             body('es_favorito').optional().isBoolean(),
-            body('categories').optional().isArray()
+            body('categories').optional().isArray(),
+            body('tags').optional().isArray()
         ],
         toolController.update.bind(toolController)
     );

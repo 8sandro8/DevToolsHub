@@ -19,11 +19,12 @@ class ToolService {
         if (!tool) return null;
         
         tool.categories = this.repository.getCategories(id);
+        tool.tags = this.repository.getTags(id);
         return tool;
     }
 
     create(data) {
-        const { categories, ...toolData } = data;
+        const { categories, tags, ...toolData } = data;
         
         // Validar rating
         if (toolData.rating === undefined) toolData.rating = 0;
@@ -38,11 +39,17 @@ class ToolService {
             tool.categories = this.repository.getCategories(tool.id);
         }
         
+        // Asignar tags
+        if (tags && tags.length > 0) {
+            this.repository.setTags(tool.id, tags);
+            tool.tags = this.repository.getTags(tool.id);
+        }
+        
         return tool;
     }
 
     update(id, data) {
-        const { categories, ...toolData } = data;
+        const { categories, tags, ...toolData } = data;
         
         // Validar rating si se incluye
         if (toolData.rating !== undefined) {
@@ -56,6 +63,12 @@ class ToolService {
         if (categories !== undefined) {
             this.repository.setCategories(id, categories);
             tool.categories = this.repository.getCategories(id);
+        }
+        
+        // Actualizar tags si se proporcionan
+        if (tags !== undefined) {
+            this.repository.setTags(id, tags);
+            tool.tags = this.repository.getTags(id);
         }
         
         return tool;

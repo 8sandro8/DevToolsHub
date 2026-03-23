@@ -81,6 +81,26 @@ class ToolRepository extends BaseRepository {
             categoryIds.forEach(catId => insert.run(toolId, catId));
         }
     }
+
+    getTags(toolId) {
+        const sql = `
+            SELECT t.* FROM tag t 
+            INNER JOIN tool_tag tt ON t.id = tt.tag_id 
+            WHERE tt.tool_id = ?
+        `;
+        return this.db.prepare(sql).all(toolId);
+    }
+
+    setTags(toolId, tagIds) {
+        // Eliminar tags actuales
+        this.db.prepare('DELETE FROM tool_tag WHERE tool_id = ?').run(toolId);
+        
+        // Insertar nuevos
+        if (tagIds && tagIds.length > 0) {
+            const insert = this.db.prepare('INSERT INTO tool_tag (tool_id, tag_id) VALUES (?, ?)');
+            tagIds.forEach(tagId => insert.run(toolId, tagId));
+        }
+    }
 }
 
 module.exports = ToolRepository;
