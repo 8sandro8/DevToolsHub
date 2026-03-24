@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const ToolController = require('../controllers/tool.controller');
+const GitHubController = require('../controllers/github.controller');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 
@@ -53,6 +54,10 @@ const createToolRoutes = (db) => {
 
     // PATCH /api/tools/:id/favorito - Toggle favorito
     router.patch('/:id/favorito', toolController.toggleFavorito.bind(toolController));
+
+    // GET /api/tools/:id/github-stats - Obtener stats de GitHub
+    const githubController = new GitHubController(db);
+    router.get('/:id/github-stats', githubController.getGitHubStats.bind(githubController));
 
     return router;
 };
