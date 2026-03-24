@@ -23,31 +23,46 @@ const createToolRoutes = (db) => {
     // POST /api/tools - Crear nueva herramienta
     router.post('/',
         [
-            body('nombre').trim().notEmpty().withMessage('El nombre es obligatorio'),
-            body('descripcion').optional().trim(),
-            body('url').optional().isURL().withMessage('URL inválida'),
-            body('rating').optional().isInt({ min: 0, max: 5 }).withMessage('Rating debe ser 0-5'),
-            body('es_favorito').optional().isBoolean(),
-            body('categories').optional().isArray(),
-            body('tags').optional().isArray()
+            body('nombre').trim().notEmpty().withMessage('El nombre es obligatorio')
+                .isLength({ max: 100 }).withMessage('El nombre no puede exceder 100 caracteres'),
+            body('descripcion').optional().trim()
+                .isLength({ max: 500 }).withMessage('La descripción no puede exceder 500 caracteres'),
+            body('url').optional({ nullable: true, checkFalsy: true })
+                .isURL({ require_protocol: false, require_tld: false })
+                .withMessage('URL inválida'),
+            body('logo_url').optional({ nullable: true, checkFalsy: true })
+                .isURL({ require_protocol: false, require_tld: false })
+                .withMessage('URL de logo inválida'),
+            body('rating').optional()
+                .isInt({ min: 0, max: 5 }).withMessage('Rating debe ser entre 0 y 5'),
+            body('es_favorito').optional().isBoolean().withMessage('es_favorito debe ser booleano'),
+            body('categories').optional().isArray().withMessage('categories debe ser un array'),
+            body('tags').optional().isArray().withMessage('tags debe ser un array'),
         ],
         validate,
         toolController.create.bind(toolController)
     );
 
     // PUT /api/tools/:id - Actualizar herramienta
-    // NOTA: No se aplica middleware validate para permitir edición con URLs sin protocolo
     router.put('/:id',
         [
-            body('nombre').optional().trim().notEmpty(),
-            body('descripcion').optional().trim(),
-            body('url').optional().isURL({ require_tld: false, require_protocol: false }),
-            body('logo_url').optional().isURL({ require_tld: false, require_protocol: false }),
-            body('rating').optional().isInt({ min: 0, max: 5 }),
+            body('nombre').optional().trim().notEmpty().withMessage('El nombre no puede estar vacío')
+                .isLength({ max: 100 }).withMessage('El nombre no puede exceder 100 caracteres'),
+            body('descripcion').optional().trim()
+                .isLength({ max: 500 }).withMessage('La descripción no puede exceder 500 caracteres'),
+            body('url').optional({ nullable: true, checkFalsy: true })
+                .isURL({ require_protocol: false, require_tld: false })
+                .withMessage('URL inválida'),
+            body('logo_url').optional({ nullable: true, checkFalsy: true })
+                .isURL({ require_protocol: false, require_tld: false })
+                .withMessage('URL de logo inválida'),
+            body('rating').optional()
+                .isInt({ min: 0, max: 5 }).withMessage('Rating debe ser entre 0 y 5'),
             body('es_favorito').optional().isBoolean(),
             body('categories').optional().isArray(),
-            body('tags').optional().isArray()
+            body('tags').optional().isArray(),
         ],
+        validate,
         toolController.update.bind(toolController)
     );
 
