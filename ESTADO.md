@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** PWA (Service Worker + manifest.json) — PR #6 abierto ✅
+**Sesión:** Ordenamiento asc/desc — PR #7 abierto ✅
 
 ---
 
@@ -30,45 +30,55 @@
   - `DELETE /api/tools/:id/image` — elimina imagen (protegido con JWT)
   - Frontend: preview en modal, imagen en cards y detalle
   - 7 tests en `backend/tests/integration/upload.api.test.js`
-- **PWA (Service Worker + manifest)** ⏳ PR #6 abierto (`feature/pwa` → `develop`):
+- **PWA** ✅ MERGEADO en `develop` (PR #6):
   - `frontend/manifest.json` — nombre, iconos, colores, display standalone
-  - `frontend/sw.js` — Service Worker (Network First para API, Cache First para estáticos)
-  - `frontend/icons/icon-192x192.png` e `icon-512x512.png`
-  - Meta tags PWA + script registro SW en `index.html`, `detalle.html`, `login.html`
+  - `frontend/sw.js` — Service Worker (Network First API / Cache First estáticos)
+  - `frontend/icons/` — iconos 192x192 y 512x512
+  - Meta tags PWA + registro SW en los 3 HTML
+- **Ordenamiento asc/desc** ⏳ PR #7 abierto (`feature/ordenamiento` → `develop`):
+  - Selector de campo: Nombre / Categoría / Fecha de creación
+  - Botón toggle asc/desc con icono SVG inline
+  - Ordenamiento en memoria sobre `ListView._state.tools` (sin recarga)
+  - `sortTools()` integrada en `ListView.render()`
+  - `_sortState` como objeto de estado local al módulo
+  - Reset de sorting al limpiar filtros ("Inicio")
+  - Ordenamiento por categoría toma la primera del array
 
 ### Git / GitHub
 - **PR #3 mergeado**: `feature/login-basico` → `develop` ✅
 - **PR #4 mergeado**: `feature/upload-imagenes` → `develop` ✅
-- **PR #6 abierto**: `feature/pwa` → `develop` ⏳ (pendiente merge manual en GitHub)
-  - URL: https://github.com/8sandro8/DevToolsHub/pull/6
-- Rama activa: `feature/pwa`
+- **PR #6 mergeado**: `feature/pwa` → `develop` ✅
+- **PR #7 abierto**: `feature/ordenamiento` → `develop` ⏳
+  - URL: https://github.com/8sandro8/DevToolsHub/pull/7
+- Rama activa: `feature/ordenamiento`
 - `main` pendiente de sincronizar cuando convenga
 
 ---
 
 ## ⚠️ Errores / Pendientes técnicos
 
-- Tests no ejecutables en el entorno local del agente (better-sqlite3 requiere compilación nativa con Visual Studio). Los 51 tests + 7 de upload deberían pasar en entorno correcto.
+- Tests no ejecutables en el entorno local del agente (better-sqlite3 requiere compilación nativa con Visual Studio). Los tests existentes deberían pasar en entorno correcto.
 - `Gentleman-Skills/` y `nul` aparecen como untracked en git (son del entorno, ignorar).
 - `backend/.env` untracked (correcto — contiene secretos, está en .gitignore).
-- Los iconos PWA son SVG con extensión `.png` (válido para navegadores modernos; si se necesitan PNG reales, generar con Sharp o similar).
+- Iconos PWA son SVG con extensión `.png` (válido navegadores modernos; si se necesitan PNG reales, generar con Sharp o similar).
 
 ---
 
 ## 🎯 Próximo paso exacto
 
-**ACCIÓN INMEDIATA:** Mergear PR #6 (`feature/pwa`) cuando el usuario lo apruebe.
+**ACCIÓN INMEDIATA:** Mergear PR #7 (`feature/ordenamiento`) cuando el usuario lo apruebe.
 
-**SIGUIENTE FEATURE:** `feature/ordenamiento`
-- Ordenamiento asc/desc en la lista de herramientas (por nombre, fecha, categoría)
+**SIGUIENTE FEATURE:** `Digitalización (comparativa IDEs)`
+- Documento comparativo de IDEs para la entrega AA2
+- Entrega: 27 mayo 2026
 
 **BACKLOG (en orden):**
 | # | Feature | Estado |
 |---|---------|--------|
 | 1 | ~~Login básico~~ | ✅ Mergeado |
 | 2 | ~~Upload de imágenes~~ | ✅ Mergeado |
-| 3 | PWA (Service Worker + manifest) | ⏳ PR #6 abierto |
-| 4 | Ordenamiento asc/desc | ⏳ Pendiente |
+| 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
+| 4 | Ordenamiento asc/desc | ⏳ PR #7 abierto |
 | 5 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
 
 ---
@@ -87,9 +97,10 @@
 | `frontend/manifest.json` | PWA manifest — nombre, iconos, display standalone |
 | `frontend/sw.js` | Service Worker — cache estáticos + Network First para API |
 | `frontend/icons/` | Iconos PWA 192x192 y 512x512 |
+| `frontend/index.html` | Vista principal — controles ordenamiento en línea ~66-81 |
+| `frontend/js/app.js` | App principal — ListView con sortTools(), _sortState, listeners |
 | `frontend/login.html` | Página login/registro |
 | `frontend/js/auth.js` | Gestión token localStorage |
-| `frontend/js/app.js` | App principal frontend (incluye uploadImage/deleteImage) |
 | `backend/tests/` | Tests Jest (auth + tools + categories + tags + upload) |
 | `backend/uploads/.gitkeep` | Carpeta de uploads (imágenes ignoradas por .gitignore) |
 | `backend/.env.example` | Plantilla variables de entorno |
@@ -103,7 +114,7 @@
 - **Auth:** JWT (jsonwebtoken + bcryptjs), token en localStorage
 - **Upload:** multer — `backend/uploads/`, servido como estático en `/uploads`
 - **PWA:** Service Worker + manifest.json — instalable desde Chrome/Edge/Firefox
-- **Tests:** Jest 29 + supertest — **51 tests passing** (+ 7 nuevos upload, pendientes de validar)
+- **Tests:** Jest 29 + supertest — **51 tests passing** (pendientes de validar en entorno nativo)
 - **Repo:** https://github.com/8sandro8/DevToolsHub.git
 - **Ramas:** `main` (producción) → `develop` → `feature/*`
 
