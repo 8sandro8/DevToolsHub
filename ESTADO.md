@@ -122,7 +122,7 @@ Adicionales (1 pto c/u):
 | E8 | Validación frontend en formularios antes de enviar | ✅ PR #16 abierto |
 | E9 | Framework React o Vue en frontend | ⏳ Pendiente (usa Vanilla JS) |
 | E10 | Nuevo elemento en modelo de datos con CRUD completo (backend + frontend) | ✅ Hecho (Tags) |
-| E11 | Wiki en GitHub con especificación de la API | ⏳ Pendiente |
+| E11 | Wiki en GitHub con especificación de la API | ✅ Hecho |
 | E12 | Colección Postman/HoppScotch con ejemplos de todos los endpoints | ✅ PR #15 abierto |
 | E13 | API con operación para trabajar con imágenes | ✅ Hecho (multer upload/delete) |
 
