@@ -3,13 +3,18 @@
  * API communication for tags management
  */
 
+// Local config - avoids dependency on _CONFIG from app.js
+const _TAGS_API_CONFIG = {
+    API_BASE_URL: '/api'
+};
+
 const TagsAPI = {
     /**
      * Get all tags
      * @returns {Promise<Array>} List of tags
      */
     async getAll() {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags`);
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags`);
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw new Error(error.message || 'Error al obtener los tags');
@@ -24,7 +29,7 @@ const TagsAPI = {
      * @returns {Promise<Object>} Tag object
      */
     async getById(id) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags/${id}`);
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags/${id}`);
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw new Error(error.message || 'Error al obtener el tag');
@@ -39,7 +44,7 @@ const TagsAPI = {
      * @returns {Promise<Object>} Created tag
      */
     async create(tagData) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags`, {
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -61,7 +66,7 @@ const TagsAPI = {
      * @returns {Promise<Object>} Updated tag
      */
     async update(id, tagData) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags/${id}`, {
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -82,7 +87,7 @@ const TagsAPI = {
      * @returns {Promise<void>}
      */
     async delete(id) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags/${id}`, {
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags/${id}`, {
             method: 'DELETE'
         });
         if (!response.ok) {
@@ -97,7 +102,7 @@ const TagsAPI = {
      * @returns {Promise<Array>} List of tools
      */
     async getTools(id) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags/${id}/tools`);
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags/${id}/tools`);
         if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw new Error(error.message || 'Error al obtener las herramientas del tag');
@@ -113,7 +118,7 @@ const TagsAPI = {
      * @returns {Promise<void>}
      */
     async setTools(id, toolIds) {
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tags/${id}/tools`, {
+        const response = await fetch(`${_TAGS_API_CONFIG.API_BASE_URL}/tags/${id}/tools`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
