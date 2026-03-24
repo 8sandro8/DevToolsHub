@@ -62,6 +62,12 @@ const _state = {
     isDetailMode: !!window.__DETAIL_MODE__
 };
 
+// State for sorting
+const _sortState = {
+    sortField: 'nombre',
+    sortDirection: 'asc'
+};
+
 // ============================================
 // API Client
 // ============================================
@@ -95,7 +101,17 @@ const _API = {
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || `HTTP error! status: ${response.status}`);
+                
+                // Manejar los distintos formatos de error del backend
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.error) {
+                    errorMessage = error.error;
+                } else if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+                    errorMessage = error.errors.map(e => e.msg).join(', ');
+                }
+                throw new Error(errorMessage);
             }
             return await response.json();
         } catch (error) {
@@ -160,38 +176,8 @@ const _API = {
         return this.request('/tags');
     },
 
-    // Upload image for a tool
-    async uploadImage(toolId, file) {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const token = _Auth.getToken();
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tools/${toolId}/image`, {
-            method: 'POST',
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-            body: formData
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.message || `HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    },
-
-    // Delete image for a tool
-    async deleteImage(toolId) {
-        const token = _Auth.getToken();
-        const response = await fetch(`${_CONFIG.API_BASE_URL}/tools/${toolId}/image`, {
-            method: 'DELETE',
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.message || `HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
+    getGitHubStats(toolId) {
+        return this.request(`/tools/${toolId}/github-stats`);
     }
 };
 
@@ -292,8 +278,65 @@ const _Utils = {
             text: text.substring(0, maxLength).trim() + '...',
             truncated: true
         };
+    },
+
+    formatRelativeTime(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffWeeks = Math.floor(diffDays / 7);
+        const diffMonths = Math.floor(diffDays / 30);
+        const diffYears = Math.floor(diffDays / 365);
+        
+        const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+        
+        if (diffYears !== 0) return rtf.format(-diffYears, 'year');
+        if (diffMonths !== 0) return rtf.format(-diffMonths, 'month');
+        if (diffWeeks !== 0) return rtf.format(-diffWeeks, 'week');
+        if (diffDays !== 0) return rtf.format(-diffDays, 'day');
+        if (diffHours !== 0) return rtf.format(-diffHours, 'hour');
+        if (diffMinutes !== 0) return rtf.format(-diffMinutes, 'minute');
+        
+        return 'hace un momento';
     }
 };
+
+// ============================================
+// Sorting Functions
+// ============================================
+function sortTools(tools) {
+    return [...tools].sort((a, b) => {
+        let valA, valB;
+        
+        // Handle different field types
+        if (_sortState.sortField === 'fecha_creacion') {
+            // Date comparison - use ISO strings directly
+            valA = a.fecha_creacion || '';
+            valB = b.fecha_creacion || '';
+        } else if (_sortState.sortField === 'categoria') {
+            // For category, we need to get the first category name
+            valA = (a.categories && a.categories.length > 0 && a.categories[0].nombre) || '';
+            valB = (b.categories && b.categories.length > 0 && b.categories[0].nombre) || '';
+            valA = valA.toString().toLowerCase();
+            valB = valB.toString().toLowerCase();
+        } else {
+            // Default: sort by name
+            valA = (a.nombre || '').toString().toLowerCase();
+            valB = (b.nombre || '').toString().toLowerCase();
+        }
+        
+        // Compare values
+        if (valA < valB) return _sortState.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return _sortState.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
 
 // ============================================
 // Tool Card Component (Bootstrap Card)
@@ -894,8 +937,11 @@ const ToolForm = {
     },
     
     isValidUrl(string) {
+        if (!string) return true; // Allow empty URLs
         try {
-            new URL(string);
+            // If no protocol, add one for validation purposes
+            const urlToCheck = string.match(/^https?:\/\//) ? string : 'https://' + string;
+            new URL(urlToCheck);
             return true;
         } catch (_) {
             return false;
@@ -1181,8 +1227,47 @@ const DetailView = {
             
             card.appendChild(metaSection);
             
+            // GitHub Stats section - will be loaded separately
+            const githubSection = _DOM.createElement('div', 'detail-section');
+            githubSection.id = 'github-stats-section';
+            
+            const githubTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Stats del Repo GitHub'
+            });
+            githubSection.appendChild(githubTitle);
+            
+            // Skeleton loader
+            const skeletonLoader = _DOM.createElement('div', 'github-stats-skeleton');
+            skeletonLoader.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Estrellas</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Forks</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Último Commit</p>
+                    </div>
+                </div>
+            `;
+            githubSection.appendChild(skeletonLoader);
+            card.appendChild(githubSection);
+            
             container.appendChild(backLink);
             container.appendChild(card);
+            
+            // Load GitHub stats after rendering
+            this.loadGitHubStats(toolId);
             
             // Setup read more button event
             this.setupReadMoreButton();
@@ -1238,6 +1323,58 @@ const DetailView = {
             window.location.href = 'index.html';
         } catch (error) {
             Toast.error('Error al eliminar la herramienta');
+        }
+    },
+
+    async loadGitHubStats(toolId) {
+        const section = _DOM.$('#github-stats-section');
+        if (!section) return;
+
+        try {
+            const stats = await _API.getGitHubStats(toolId);
+            
+            // Clear skeleton loader
+            const skeleton = section.querySelector('.github-stats-skeleton');
+            if (skeleton) skeleton.remove();
+            
+            // Create stats display
+            const statsDiv = _DOM.createElement('div', 'github-stats-content');
+            statsDiv.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-warning">
+                            <i class="bi bi-star-fill"></i> ${stats.starsFormatted}
+                        </div>
+                        <p class="mb-0 small text-muted">Estrellas</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-primary">
+                            <i class="bi bi-git"></i> ${stats.forksFormatted}
+                        </div>
+                        <p class="mb-0 small text-muted">Forks</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-success">
+                            <i class="bi bi-calendar-event"></i> ${_Utils.formatRelativeTime(stats.lastCommit)}
+                        </div>
+                        <p class="mb-0 small text-muted">Último Commit</p>
+                    </div>
+                </div>
+            `;
+            section.appendChild(statsDiv);
+            
+        } catch (error) {
+            // Silently hide section if tool has no GitHub URL or URL is invalid
+            // Only show "Stats no disponibles" for API errors
+            const skeleton = section.querySelector('.github-stats-skeleton');
+            if (skeleton) {
+                skeleton.innerHTML = `
+                    <div class="text-center text-muted py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span class="small">Stats no disponibles</span>
+                    </div>
+                `;
+            }
         }
     }
 };
@@ -1316,7 +1453,8 @@ const ListView = {
             });
             grid.appendChild(emptyMsg);
         } else {
-            _state.tools.forEach((tool, index) => {
+            const sortedTools = sortTools(_state.tools);
+            sortedTools.forEach((tool, index) => {
                 const card = ToolCard.render(tool);
                 const cardElement = card.querySelector('.tool-card');
                 cardElement.style.animationDelay = `${index * 0.05}s`;
@@ -1453,6 +1591,42 @@ const ListView = {
                 const categoryFilter = _DOM.$('#category-filter');
                 if (searchInput) searchInput.value = '';
                 if (categoryFilter) categoryFilter.value = '';
+                
+                // Reset sorting
+                const sortField = _DOM.$('#sortField');
+                const sortIcon = _DOM.$('#sortIcon');
+                if (sortField) sortField.value = 'nombre';
+                _sortState.sortField = 'nombre';
+                _sortState.sortDirection = 'asc';
+                if (sortIcon) {
+                    sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                }
+            });
+        }
+        
+        // Sorting controls
+        const sortFieldEl = _DOM.$('#sortField');
+        const sortToggleEl = _DOM.$('#sortToggle');
+        
+        if (sortFieldEl) {
+            sortFieldEl.addEventListener('change', (e) => {
+                _sortState.sortField = e.target.value;
+                this.render();
+            });
+        }
+        
+        if (sortToggleEl) {
+            sortToggleEl.addEventListener('click', () => {
+                _sortState.sortDirection = _sortState.sortDirection === 'asc' ? 'desc' : 'asc';
+                const sortIcon = _DOM.$('#sortIcon');
+                if (sortIcon) {
+                    if (_sortState.sortDirection === 'asc') {
+                        sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                    } else {
+                        sortIcon.innerHTML = '<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                    }
+                }
+                this.render();
             });
         }
     }
