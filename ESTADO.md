@@ -43,11 +43,12 @@
   - `_sortState` como objeto de estado local al módulo
   - Reset de sorting al limpiar filtros ("Inicio")
   - Ordenamiento por categoría toma la primera del array
-- **Validación backend** ✅ PR #11 abierto (`feature/validacion-backend` → `develop`):
-  - Validaciones mejoradas en rutas tools: límites de longitud, fix URL nullable en PUT
-  - Nuevo endpoint `PUT /api/categories/:id` con validaciones
-  - Middleware `validate` para manejo uniforme de errores
-  - Tests añadidos para categories API
+- **Validación backend** ⏳ PR #11 abierto (`feature/validacion-backend` → `develop`):
+  - Validaciones con límites de longitud en tools (nombre 100, descripción 500) y categories (nombre 100, descripción 300)
+  - Fix URL nullable en PUT tools: `optional({ nullable: true, checkFalsy: true })`
+  - Middleware `validate` aplicado uniformemente en POST y PUT
+  - Nuevo endpoint `PUT /api/categories/:id` con validación completa
+  - Tests nuevos en `backend/tests/integration/categories.api.test.js`
 
 ### Git / GitHub
 - **PR #3 mergeado**: `feature/login-basico` → `develop` ✅
@@ -56,7 +57,7 @@
 - **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
 - **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
   - URL: https://github.com/8sandro8/DevToolsHub/pull/11
-- Rama activa: `feature/validacion-backend`
+- Rama activa: `develop` (tras merge)
 - `main` pendiente de sincronizar cuando convenga
 
 ---
@@ -74,9 +75,9 @@
 
 **ACCIÓN INMEDIATA:** Mergear PR #11 (`feature/validacion-backend`) cuando el usuario lo apruebe.
 
-**SIGUIENTE FEATURE:** `Digitalización (comparativa IDEs)`
-- Documento comparativo de IDEs para la entrega AA2
-- Entrega: 27 mayo 2026
+**SIGUIENTE FEATURE:** `GitHub API integration`
+- Integración con GitHub API para mostrar stats de repos en página detalle
+- Ya existe rama `feature/github-api-clean` con trabajo previo
 
 **BACKLOG (en orden):**
 | # | Feature | Estado |
@@ -86,7 +87,8 @@
 | 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
 | 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
 | 5 | Validación backend | ⏳ PR #11 abierto |
-| 6 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
+| 6 | GitHub API integration | 🔲 Pendiente |
+| 7 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
 
 ---
 
@@ -97,6 +99,7 @@
 | `backend/src/app.js` | Entry point Express + rutas + middleware auth + static /uploads |
 | `backend/src/middleware/auth.middleware.js` | JWT Bearer verification |
 | `backend/src/middleware/upload.middleware.js` | Multer config — diskStorage, filtros, 5MB |
+| `backend/src/middleware/validate.js` | express-validator result handler — 400 si hay errores |
 | `backend/src/controllers/upload.controller.js` | Upload/delete de imagen por tool ID |
 | `backend/src/services/auth.service.js` | Lógica register/login/verify |
 | `database/schema.sql` | Schema SQLite (tool, category, tag, user) + image_url |
