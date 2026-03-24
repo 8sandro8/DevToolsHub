@@ -101,6 +101,21 @@ class ToolRepository extends BaseRepository {
             tagIds.forEach(tagId => insert.run(toolId, tagId));
         }
     }
+
+    updateImageUrl(id, imageUrl) {
+        const stmt = this.db.prepare(`
+            UPDATE tool 
+            SET image_url = ?, fecha_actualizacion = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        `);
+        const result = stmt.run(imageUrl, id);
+        
+        if (result.changes === 0) {
+            return null;
+        }
+        
+        return this.findById(id);
+    }
 }
 
 module.exports = ToolRepository;

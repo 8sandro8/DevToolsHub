@@ -84,6 +84,20 @@ class ToolService {
         
         return this.repository.update(id, { es_favorito: tool.es_favorito ? 0 : 1 });
     }
+
+    updateImageUrl(id, imageUrl) {
+        const tool = this.repository.findById(id);
+        if (!tool) return null;
+        
+        const updatedTool = this.repository.updateImageUrl(id, imageUrl);
+        if (!updatedTool) return null;
+        
+        // Include categories and tags
+        updatedTool.categories = this.repository.getCategories(id);
+        updatedTool.tags = this.repository.getTags(id);
+        
+        return updatedTool;
+    }
 }
 
 module.exports = ToolService;

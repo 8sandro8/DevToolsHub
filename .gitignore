@@ -27,6 +27,9 @@ AA2/
 dist/
 build/
 
+# Uploads (user uploaded images)
+backend/uploads/*
+
 # Internal work files (DevToolsHub)
 .atl/
 .clinerules

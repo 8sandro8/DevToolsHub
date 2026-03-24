@@ -9,6 +9,8 @@ const path = require('path');
 const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
+const createAuthRoutes = require('./routes/auth.routes');
+const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
 
 const app = express();
@@ -34,6 +36,10 @@ if (process.env.NODE_ENV !== 'production') {
 // Static files - Frontend
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
+
+// Static files - Uploads
+const uploadsPath = path.resolve(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(uploadsPath));
 
 // Root route - TEST
 app.get('/test', (req, res) => {
@@ -66,6 +72,7 @@ app.get('/api', (req, res) => {
         version: '1.0.0',
         endpoints: {
             health: '/health',
+            auth: '/api/auth',
             tools: '/api/tools',
             categories: '/api/categories',
             tags: '/api/tags'
@@ -73,10 +80,22 @@ app.get('/api', (req, res) => {
     });
 });
 
-// API Routes
-app.use('/api/tools', createToolRoutes(db));
-app.use('/api/categories', createCategoryRoutes(db));
-app.use('/api/tags', createTagRoutes(db));
+// Auth routes (public — no middleware)
+app.use('/api/auth', createAuthRoutes(db));
+
+// Protected mutation middleware — applies only to POST, PUT, PATCH, DELETE
+const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+const protectMutations = (req, res, next) => {
+    if (mutationMethods.includes(req.method)) {
+        return authenticateToken(req, res, next);
+    }
+    next();
+};
+
+// API Routes with selective auth protection
+app.use('/api/tools', protectMutations, createToolRoutes(db));
+app.use('/api/categories', protectMutations, createCategoryRoutes(db));
+app.use('/api/tags', protectMutations, createTagRoutes(db));
 
 // 404 handler
 app.use((req, res) => {

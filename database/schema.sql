@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS tool (
     descripcion TEXT,
     url TEXT,
     logo_url TEXT,
+    image_url TEXT DEFAULT NULL,
     rating INTEGER DEFAULT 0 CHECK(rating >= 0 AND rating <= 5),
     es_favorito INTEGER DEFAULT 0,
     es_archivado INTEGER DEFAULT 0,
