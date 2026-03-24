@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** Ordenamiento asc/desc — PR #7 abierto ✅
+**Sesión:** Validación backend — PR #11 abierto ✅
 
 ---
 
@@ -35,7 +35,7 @@
   - `frontend/sw.js` — Service Worker (Network First API / Cache First estáticos)
   - `frontend/icons/` — iconos 192x192 y 512x512
   - Meta tags PWA + registro SW en los 3 HTML
-- **Ordenamiento asc/desc** ⏳ PR #7 abierto (`feature/ordenamiento` → `develop`):
+- **Ordenamiento asc/desc** ✅ MERGEADO en `develop` (PR #7):
   - Selector de campo: Nombre / Categoría / Fecha de creación
   - Botón toggle asc/desc con icono SVG inline
   - Ordenamiento en memoria sobre `ListView._state.tools` (sin recarga)
@@ -43,14 +43,20 @@
   - `_sortState` como objeto de estado local al módulo
   - Reset de sorting al limpiar filtros ("Inicio")
   - Ordenamiento por categoría toma la primera del array
+- **Validación backend** ✅ PR #11 abierto (`feature/validacion-backend` → `develop`):
+  - Validaciones mejoradas en rutas tools: límites de longitud, fix URL nullable en PUT
+  - Nuevo endpoint `PUT /api/categories/:id` con validaciones
+  - Middleware `validate` para manejo uniforme de errores
+  - Tests añadidos para categories API
 
 ### Git / GitHub
 - **PR #3 mergeado**: `feature/login-basico` → `develop` ✅
 - **PR #4 mergeado**: `feature/upload-imagenes` → `develop` ✅
 - **PR #6 mergeado**: `feature/pwa` → `develop` ✅
-- **PR #7 abierto**: `feature/ordenamiento` → `develop` ⏳
-  - URL: https://github.com/8sandro8/DevToolsHub/pull/7
-- Rama activa: `feature/ordenamiento`
+- **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
+- **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
+  - URL: https://github.com/8sandro8/DevToolsHub/pull/11
+- Rama activa: `feature/validacion-backend`
 - `main` pendiente de sincronizar cuando convenga
 
 ---
@@ -66,7 +72,7 @@
 
 ## 🎯 Próximo paso exacto
 
-**ACCIÓN INMEDIATA:** Mergear PR #7 (`feature/ordenamiento`) cuando el usuario lo apruebe.
+**ACCIÓN INMEDIATA:** Mergear PR #11 (`feature/validacion-backend`) cuando el usuario lo apruebe.
 
 **SIGUIENTE FEATURE:** `Digitalización (comparativa IDEs)`
 - Documento comparativo de IDEs para la entrega AA2
@@ -78,8 +84,9 @@
 | 1 | ~~Login básico~~ | ✅ Mergeado |
 | 2 | ~~Upload de imágenes~~ | ✅ Mergeado |
 | 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
-| 4 | Ordenamiento asc/desc | ⏳ PR #7 abierto |
-| 5 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
+| 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
+| 5 | Validación backend | ⏳ PR #11 abierto |
+| 6 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
 
 ---
 
