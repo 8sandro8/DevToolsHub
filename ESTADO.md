@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** GitHub API integration — PR abierto ✅
+**Sesión:** GitHub API + fixes UI — PR #13 abierto ✅
 
 ---
 
@@ -49,12 +49,17 @@
   - Middleware `validate` aplicado uniformemente en POST y PUT
   - Nuevo endpoint `PUT /api/categories/:id` con validación completa
   - Tests nuevos en `backend/tests/integration/categories.api.test.js`
-- **GitHub API integration** ✅ PR abierto (`feature/github-api-v2` → `develop`):
+- **GitHub API integration + fixes UI** ✅ PR #13 abierto (`feature/github-api-v2` → `develop`):
   - `GitHubController` — extrae owner/repo de URL, llama a GitHub API
   - Endpoint `GET /api/tools/:id/github-stats` — devuelve stars, forks, último commit, nombre del repo
   - Soporte para `GITHUB_TOKEN` opcional (aumenta rate limit de 60 a 5000 req/hora)
   - Frontend: sección "Stats del Repo GitHub" en página detalle con cards Bootstrap 5
   - Carga asíncrona de stats al abrir la página de detalle
+  - Fix captura de errores API: maneja `error.message`, `error.error` y `error.errors[]`
+  - Fix `tagManager.js`: utilidades DOM locales `_TM` (elimina dependencia de `_DOM` de app.js)
+  - Fix `tagsApi.js`: config local `_TAGS_API_CONFIG` (elimina dependencia de `_CONFIG` de app.js)
+  - Fix grid de cards: `row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4` — cards de tamaño fijo
+  - Fix CSS: `.tool-name` truncado a 2 líneas, `.tool-description` truncado a 3 líneas
 
 ### Git / GitHub
 - **PR #3 mergeado**: `feature/login-basico` → `develop` ✅
@@ -63,7 +68,7 @@
 - **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
 - **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
   - URL: https://github.com/8sandro8/DevToolsHub/pull/11
-- **PR #12 abierto**: `feature/github-api-v2` → `develop` ⏳
+- **PR #13 abierto**: `feature/github-api-v2` → `develop` ⏳
   - URL: https://github.com/8sandro8/DevToolsHub/pull/13
 - Rama activa: `feature/github-api-v2`
 - `main` pendiente de sincronizar cuando convenga
@@ -94,7 +99,7 @@
 | 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
 | 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
 | 5 | Validación backend | ⏳ PR #11 abierto |
-| 6 | GitHub API integration | ⏳ PR #12 abierto |
+| 6 | GitHub API + fixes UI | ⏳ PR #13 abierto |
 | 7 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
 
 ---
@@ -121,6 +126,9 @@
 | `backend/tests/` | Tests Jest (auth + tools + categories + tags + upload) |
 | `backend/uploads/.gitkeep` | Carpeta de uploads (imágenes ignoradas por .gitignore) |
 | `backend/.env.example` | Plantilla variables de entorno |
+| `backend/src/controllers/github.controller.js` | GitHubController — extrae owner/repo, llama GitHub API, formatea números |
+| `frontend/js/components/tagManager.js` | Tag Manager UI — usa `_TM` (DOM local, sin dependencia de app.js) |
+| `frontend/js/api/tagsApi.js` | Tags API client — usa `_TAGS_API_CONFIG` (sin dependencia de app.js) |
 
 ---
 
