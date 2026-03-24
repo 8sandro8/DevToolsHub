@@ -3,6 +3,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Environment variables (secrets)
+.env
+backend/.env
+
 # Database
 *.db
 *.db-shm
@@ -17,7 +21,6 @@ yarn-error.log
 # OS
 Thumbs.db
 .DS_Store
-nul
 
 # Docs
 AA2/
@@ -33,4 +36,6 @@ build/
 .clinerules
 agents.md
 PRD.md
-SDD.mdwiki/
+SDD.md
+wiki/
+backend/coverage/

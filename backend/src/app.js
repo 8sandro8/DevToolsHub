@@ -3,12 +3,16 @@
  * Core middleware and routing setup
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
+const createAuthRoutes = require('./routes/auth.routes');
+const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
 
 const app = express();
@@ -50,6 +54,11 @@ app.get('/detalle', (req, res) => {
     res.sendFile(path.join(frontendPath, 'detalle.html'));
 });
 
+// Login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({
@@ -66,6 +75,7 @@ app.get('/api', (req, res) => {
         version: '1.0.0',
         endpoints: {
             health: '/health',
+            auth: '/api/auth',
             tools: '/api/tools',
             categories: '/api/categories',
             tags: '/api/tags'
@@ -73,10 +83,22 @@ app.get('/api', (req, res) => {
     });
 });
 
-// API Routes
-app.use('/api/tools', createToolRoutes(db));
-app.use('/api/categories', createCategoryRoutes(db));
-app.use('/api/tags', createTagRoutes(db));
+// Auth routes (public — no middleware)
+app.use('/api/auth', createAuthRoutes(db));
+
+// Protected mutation middleware — applies only to POST, PUT, PATCH, DELETE
+const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+const protectMutations = (req, res, next) => {
+    if (mutationMethods.includes(req.method)) {
+        return authenticateToken(req, res, next);
+    }
+    next();
+};
+
+// API Routes with selective auth protection
+app.use('/api/tools', protectMutations, createToolRoutes(db));
+app.use('/api/categories', protectMutations, createCategoryRoutes(db));
+app.use('/api/tags', protectMutations, createTagRoutes(db));
 
 // 404 handler
 app.use((req, res) => {
