@@ -158,6 +158,40 @@ const _API = {
 
     getTags() {
         return this.request('/tags');
+    },
+
+    // Upload image for a tool
+    async uploadImage(toolId, file) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const token = _Auth.getToken();
+        const response = await fetch(`${_CONFIG.API_BASE_URL}/tools/${toolId}/image`, {
+            method: 'POST',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    },
+
+    // Delete image for a tool
+    async deleteImage(toolId) {
+        const token = _Auth.getToken();
+        const response = await fetch(`${_CONFIG.API_BASE_URL}/tools/${toolId}/image`, {
+            method: 'DELETE',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.message || `HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
     }
 };
 
@@ -270,9 +304,9 @@ const ToolCard = {
         const template = _DOM.$('#tool-card-template');
         const card = template.content.cloneNode(true);
         
-        // Set card data
+        // Set card data - use image_url if available, otherwise logo_url
         const logo = card.querySelector('.tool-logo');
-        logo.src = tool.logo_url || _CONFIG.DEFAULT_LOGO;
+        logo.src = tool.image_url || tool.logo_url || _CONFIG.DEFAULT_LOGO;
         logo.alt = `${tool.nombre} logo`;
         
         const ratingStars = card.querySelector('.rating-stars');
@@ -624,6 +658,9 @@ const Modal = {
         if (ratingDisplay) {
             ratingDisplay.textContent = '★★★☆☆';
         }
+
+        // Reset image previews
+        this.resetImagePreviews();
         
         // Set editing mode
         this.editingToolId = editingTool ? editingTool.id : null;
@@ -652,9 +689,14 @@ const Modal = {
             // Set selected tags
             if (TagManager && editingTool.tags && editingTool.tags.length > 0) {
                 const tagIds = editingTool.tags.map(t => t.id);
-                TagManager.renderTagSelect(tagIds);
+                ToolForm.renderTagSelect(tagIds);
             } else if (TagManager) {
-                TagManager.renderTagSelect([]);
+                ToolForm.renderTagSelect([]);
+            }
+
+            // Show current image if exists
+            if (editingTool.image_url) {
+                this.showCurrentImage(editingTool.image_url);
             }
         } else {
             // Add mode
@@ -727,6 +769,40 @@ const Modal = {
             if (btnText) btnText.classList.remove('d-none');
             if (btnLoading) btnLoading.classList.add('d-none');
         }
+    },
+
+    resetImagePreviews() {
+        const currentPreview = _DOM.$('#current-image-preview');
+        const newPreview = _DOM.$('#new-image-preview');
+        const imageInput = _DOM.$('#tool-image');
+
+        if (currentPreview) currentPreview.classList.add('d-none');
+        if (newPreview) newPreview.classList.add('d-none');
+        if (imageInput) imageInput.value = '';
+    },
+
+    showCurrentImage(imageUrl) {
+        const currentPreview = _DOM.$('#current-image-preview');
+        const currentImage = _DOM.$('#current-image');
+
+        if (currentPreview && currentImage) {
+            currentImage.src = imageUrl;
+            currentPreview.classList.remove('d-none');
+        }
+    },
+
+    showNewImagePreview(file) {
+        const newPreview = _DOM.$('#new-image-preview');
+        const newImage = _DOM.$('#new-image');
+
+        if (newPreview && newImage && file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                newImage.src = e.target.result;
+                newPreview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
     }
 };
 
@@ -780,14 +856,28 @@ const ToolForm = {
             Modal.setLoading(true);
             
             let result;
+            let savedToolId;
+            
             if (Modal.editingToolId) {
                 // Update existing tool
                 result = await _API.updateTool(Modal.editingToolId, toolData);
+                savedToolId = Modal.editingToolId;
                 Toast.success('Herramienta actualizada correctamente');
             } else {
                 // Create new tool
                 result = await _API.createTool(toolData);
+                savedToolId = result.tool?.id;
                 Toast.success('Herramienta creada correctamente');
+            }
+
+            // Upload image if there's a new one
+            if (savedToolId) {
+                try {
+                    await this.handleImageUpload(savedToolId);
+                } catch (imageError) {
+                    // Image upload failed but tool was saved
+                    console.error('Image upload error:', imageError);
+                }
             }
             
             // Close modal
@@ -838,6 +928,68 @@ const ToolForm = {
         if (addBtn) {
             addBtn.addEventListener('click', () => Modal.open());
         }
+
+        // Image file input handler
+        const imageInput = _DOM.$('#tool-image');
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    // Check file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        Toast.error('El archivo no puede superar los 5MB');
+                        imageInput.value = '';
+                        return;
+                    }
+                    // Check file type
+                    if (!file.type.startsWith('image/')) {
+                        Toast.error('Solo se permiten archivos de imagen');
+                        imageInput.value = '';
+                        return;
+                    }
+                    Modal.showNewImagePreview(file);
+                }
+            });
+        }
+
+        // Delete image button handler
+        const deleteImageBtn = _DOM.$('#btn-delete-image');
+        if (deleteImageBtn) {
+            deleteImageBtn.addEventListener('click', async () => {
+                if (!Modal.editingToolId) return;
+
+                if (!confirm('¿Estás seguro de que deseas eliminar la imagen?')) {
+                    return;
+                }
+
+                try {
+                    await _API.deleteImage(Modal.editingToolId);
+                    Toast.success('Imagen eliminada correctamente');
+                    Modal.resetImagePreviews();
+                    // Reload tools to update the card
+                    await ListView.loadTools();
+                } catch (error) {
+                    Toast.error(error.message || 'Error al eliminar la imagen');
+                }
+            });
+        }
+    },
+
+    // Handle image upload separately from form submit
+    async handleImageUpload(toolId) {
+        const imageInput = _DOM.$('#tool-image');
+        if (!imageInput || !imageInput.files[0]) {
+            return null;
+        }
+
+        try {
+            const result = await _API.uploadImage(toolId, imageInput.files[0]);
+            Toast.success('Imagen subida correctamente');
+            return result;
+        } catch (error) {
+            Toast.error(error.message || 'Error al subir la imagen');
+            throw error;
+        }
     }
 };
 
@@ -870,10 +1022,10 @@ const DetailView = {
             // Header section with logo and title
             const headerSection = _DOM.createElement('div', 'detail-header');
             
-            // Logo
+            // Logo - use image_url if available, otherwise logo_url
             const logoWrapper = _DOM.createElement('div', 'detail-logo-wrapper');
             const logo = _DOM.createElement('img', 'detail-logo', {
-                src: tool.logo_url || _CONFIG.DEFAULT_LOGO,
+                src: tool.image_url || tool.logo_url || _CONFIG.DEFAULT_LOGO,
                 alt: `${tool.nombre} logo`
             });
             logoWrapper.appendChild(logo);

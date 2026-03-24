@@ -39,6 +39,10 @@ if (process.env.NODE_ENV !== 'production') {
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
 
+// Static files - Uploads
+const uploadsPath = path.resolve(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(uploadsPath));
+
 // Root route - TEST
 app.get('/test', (req, res) => {
     res.send('TEST OK');
