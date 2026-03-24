@@ -871,8 +871,11 @@ const ToolForm = {
     },
     
     isValidUrl(string) {
+        if (!string) return true; // Allow empty URLs
         try {
-            new URL(string);
+            // If no protocol, add one for validation purposes
+            const urlToCheck = string.match(/^https?:\/\//) ? string : 'https://' + string;
+            new URL(urlToCheck);
             return true;
         } catch (_) {
             return false;
