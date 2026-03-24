@@ -874,26 +874,26 @@ const ToolForm = {
             tags: TagManager ? TagManager.getSelectedTags() : []
         };
         
-        // Basic validation
-        if (!toolData.nombre) {
-            Modal.showError('nombre', 'El nombre es requerido');
-            return;
-        }
-        
-        if (toolData.nombre.length > 100) {
-            Modal.showError('nombre', 'El nombre no puede exceder 100 caracteres');
-            return;
-        }
-        
-        if (toolData.url && !this.isValidUrl(toolData.url)) {
-            Modal.showError('url', 'URL inválida');
-            return;
-        }
-        
-        if (toolData.logo_url && !this.isValidUrl(toolData.logo_url)) {
-            Modal.showError('logo_url', 'URL de logo inválida');
-            return;
-        }
+        // Frontend validation with inline error messages
+        const nameInput = _DOM.$('#tool-name');
+        const descInput = _DOM.$('#tool-description');
+        const urlInput  = _DOM.$('#tool-url');
+        const logoInput = _DOM.$('#tool-logo');
+        const catSelect = _DOM.$('#tool-categories');
+
+        let isValid = true;
+
+        if (!_VALIDATION.required(nameInput, 'El nombre')) isValid = false;
+        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) isValid = false;
+
+        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) isValid = false;
+        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) isValid = false;
+
+        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) isValid = false;
+        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) isValid = false;
+        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) isValid = false;
+
+        if (!isValid) return;
         
         try {
             Modal.setLoading(true);
@@ -953,6 +953,11 @@ const ToolForm = {
         if (form) {
             form.addEventListener('submit', (e) => this.handleSubmit(e));
         }
+
+        // Auto-clear validation errors when user starts typing
+        ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
+            _VALIDATION.setupAutoClear(_DOM.$(sel));
+        });
         
         // Rating input change
         const ratingInput = _DOM.$('#tool-rating');

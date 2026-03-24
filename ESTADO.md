@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** Limpieza repo — merges completos, ramas eliminadas, main sincronizado
+**Sesión:** E8 validación frontend inline + E12 colección Postman/HoppScotch + E3 README — PRs abiertos
 
 ---
 
@@ -49,6 +49,17 @@
   - Middleware `validate` aplicado uniformemente en POST y PUT
   - Nuevo endpoint `PUT /api/categories/:id` con validación completa
   - Tests nuevos en `backend/tests/integration/categories.api.test.js`
+- **Validación frontend inline (E8)** ✅ PR #16 abierto (`feature/validacion-frontend` → `develop`):
+  - Nuevo módulo `frontend/js/validation.js` — objeto `_VALIDATION` con `required`, `minLength`, `maxLength`, `optionalUrl`, `matches`, `requiredSelect`, `requiredTextarea`, `setupAutoClear`
+  - `login.html` — validación inline en login (usuario mín 3 chars, pass mín 6 chars) y registro (+ confirmación contraseña)
+  - `index.html` — incluye `validation.js` antes de `app.js`
+  - `app.js` modal herramientas — reemplaza validación básica por `_VALIDATION`: nombre (obligatorio, máx 100), descripción (obligatoria, máx 500), URL/logo (opcional, formato válido), categoría (obligatoria)
+  - Auto-limpieza de errores al escribir (evento `input`)
+- **README del proyecto (E3)** ✅ PR #14 abierto (`feature/readme` → `develop`):
+  - `README.md` en raíz con badges, stack, setup paso a paso, tabla de endpoints, tests y licencia MIT
+- **Colección Postman/HoppScotch (E12)** ✅ PR #15 abierto (`feature/coleccion-postman` → `develop`):
+  - `docs/DevToolsHub.hoppscotch.json` + `docs/DevToolsHub.postman_collection.json`
+  - 22 endpoints, 4 carpetas, variables de entorno, headers JWT automáticos
 - **GitHub API integration + fixes UI** ✅ MERGEADO en `develop` y luego en `main`:
   - `GitHubController` — extrae owner/repo de URL, llama a GitHub API
   - Endpoint `GET /api/tools/:id/github-stats` — devuelve stars, forks, último commit, nombre del repo
@@ -68,10 +79,13 @@
 - **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
 - **PR #11 MERGEADO**: `feature/validacion-backend` → `develop` ✅
 - **PR #13 CERRADO**: `feature/github-api-v2` mergeada directamente en `develop` y luego en `main` ✅
+- **PR #14 ABIERTO**: `feature/readme` → `develop` (E3 README) ⏳ pendiente merge
+- **PR #15 ABIERTO**: `feature/coleccion-postman` → `develop` (E12 Postman/HoppScotch) ⏳ pendiente merge
+- **PR #16 ABIERTO**: `feature/validacion-frontend` → `develop` (E8 validación inline) ⏳ pendiente merge
 - **PR #12 CERRADO**: `feature/ordenamiento` (duplicado)
 - **PR #8 CERRADO**: `feature/tags-crud` (obsoleto)
 - `main` y `develop` sincronizados al 100% ✅
-- **Ramas activas**: solo `main` y `develop`
+- **Ramas activas**: `main`, `develop` + 3 feature ramas con PR abierto
 - Rama activa de trabajo: `develop`
 
 ---
@@ -96,7 +110,7 @@ Obligatorios (1 pto c/u):
 |---|-----------|--------|
 | E1 | Backend CRUD completo (≥2 elementos) API REST | ✅ Hecho |
 | E2 | Frontend CRUD completo (≥2 elementos) | ✅ Hecho |
-| E3 | README en GitHub con info del proyecto e instrucciones de puesta en marcha | ⏳ Pendiente |
+| E3 | README en GitHub con info del proyecto e instrucciones de puesta en marcha | ✅ PR #14 abierto |
 | E4 | Cada funcionalidad gestionada como rama + PR en GitHub | ✅ Hecho |
 
 Adicionales (1 pto c/u):
@@ -105,11 +119,11 @@ Adicionales (1 pto c/u):
 | E5 | Elementos del modelo relacionados entre sí | ✅ Hecho (tool↔category↔tag) |
 | E6 | Login/contraseña protegiendo zona del frontend | ✅ Hecho (JWT) |
 | E7 | Validación backend con express-validator | ✅ Hecho |
-| E8 | Validación frontend en formularios antes de enviar | ⏳ Pendiente |
+| E8 | Validación frontend en formularios antes de enviar | ✅ PR #16 abierto |
 | E9 | Framework React o Vue en frontend | ⏳ Pendiente (usa Vanilla JS) |
 | E10 | Nuevo elemento en modelo de datos con CRUD completo (backend + frontend) | ✅ Hecho (Tags) |
-| E11 | Wiki en GitHub con especificación de la API | ⏳ Pendiente |
-| E12 | Colección Postman/HoppScotch con ejemplos de todos los endpoints | ⏳ Pendiente |
+| E11 | Wiki en GitHub con especificación de la API | ✅ Hecho |
+| E12 | Colección Postman/HoppScotch con ejemplos de todos los endpoints | ✅ PR #15 abierto |
 | E13 | API con operación para trabajar con imágenes | ✅ Hecho (multer upload/delete) |
 
 **BACKLOG AA2 — Lenguajes de Marcas**
@@ -118,12 +132,15 @@ Adicionales (1 pto c/u):
 
 ---
 
+**PRs PENDIENTES DE MERGE:**
+- PR #14 — E3 README
+- PR #15 — E12 Colección Postman/HoppScotch
+- PR #16 — E8 Validación frontend inline
+
 **PENDIENTES EN ORDEN DE ATAQUE:**
-1. E3 — README (obligatorio, rápido)
-2. E8 — Validación frontend formularios
-3. E11 — Wiki GitHub API
-4. E12 — Colección Postman/HoppScotch
-5. LM pendientes (cuando se lea el PDF)
+1. Mergear PRs #14, #15, #16 en `develop`
+2. E11 — Wiki GitHub API
+3. LM pendientes (cuando se lea el PDF)
 
 ---
 
@@ -160,8 +177,8 @@ Adicionales (1 pto c/u):
 
 ---
 
-**RESUMEN:** 11/12 obligatorios ✅ — 1 pendiente ⏳
-**Adicionales completados:** 0/7 ✅
+**RESUMEN:** 11/12 obligatorios ✅ — 1 pendiente ⏳ (despliegue)
+**Adicionales completados Entornos:** E5 ✅ E6 ✅ E7 ✅ E8 ✅(PR) E10 ✅ E12 ✅(PR) — E9 ⏳ E11 ⏳
 
 ---
 
@@ -184,6 +201,7 @@ Adicionales (1 pto c/u):
 | `frontend/js/app.js` | App principal — ListView con sortTools(), _sortState, listeners |
 | `frontend/login.html` | Página login/registro |
 | `frontend/js/auth.js` | Gestión token localStorage |
+| `frontend/js/validation.js` | Módulo `_VALIDATION` — validación inline Bootstrap 5 (E8) |
 | `backend/tests/` | Tests Jest (auth + tools + categories + tags + upload) |
 | `backend/uploads/.gitkeep` | Carpeta de uploads (imágenes ignoradas por .gitignore) |
 | `backend/.env.example` | Plantilla variables de entorno |
