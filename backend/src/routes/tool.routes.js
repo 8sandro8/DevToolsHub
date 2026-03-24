@@ -36,11 +36,13 @@ const createToolRoutes = (db) => {
     );
 
     // PUT /api/tools/:id - Actualizar herramienta
+    // NOTA: No se aplica middleware validate para permitir edición con URLs sin protocolo
     router.put('/:id',
         [
             body('nombre').optional().trim().notEmpty(),
             body('descripcion').optional().trim(),
-            body('url').optional().isURL(),
+            body('url').optional().isURL({ require_tld: false, require_protocol: false }),
+            body('logo_url').optional().isURL({ require_tld: false, require_protocol: false }),
             body('rating').optional().isInt({ min: 0, max: 5 }),
             body('es_favorito').optional().isBoolean(),
             body('categories').optional().isArray(),
