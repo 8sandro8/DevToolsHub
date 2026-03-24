@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** GitHub API + fixes UI — merge completado en main
+**Sesión:** Limpieza repo — merges completos, ramas eliminadas, main sincronizado
 
 ---
 
@@ -43,13 +43,13 @@
   - `_sortState` como objeto de estado local al módulo
   - Reset de sorting al limpiar filtros ("Inicio")
   - Ordenamiento por categoría toma la primera del array
-- **Validación backend** ⏳ PR #11 abierto (`feature/validacion-backend` → `develop`):
+- **Validación backend** ✅ MERGEADO en `develop`:
   - Validaciones con límites de longitud en tools (nombre 100, descripción 500) y categories (nombre 100, descripción 300)
   - Fix URL nullable en PUT tools: `optional({ nullable: true, checkFalsy: true })`
   - Middleware `validate` aplicado uniformemente en POST y PUT
   - Nuevo endpoint `PUT /api/categories/:id` con validación completa
   - Tests nuevos en `backend/tests/integration/categories.api.test.js`
-- **GitHub API integration + fixes UI** ✅ PR #13 abierto (`feature/github-api-v2` → `develop`):
+- **GitHub API integration + fixes UI** ✅ MERGEADO en `develop` y luego en `main`:
   - `GitHubController` — extrae owner/repo de URL, llama a GitHub API
   - Endpoint `GET /api/tools/:id/github-stats` — devuelve stars, forks, último commit, nombre del repo
   - Soporte para `GITHUB_TOKEN` opcional (aumenta rate limit de 60 a 5000 req/hora)
@@ -66,12 +66,13 @@
 - **PR #4 mergeado**: `feature/upload-imagenes` → `develop` ✅
 - **PR #6 mergeado**: `feature/pwa` → `develop` ✅
 - **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
-- **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
-  - URL: https://github.com/8sandro8/DevToolsHub/pull/11
-- **PR #13 abierto**: `feature/github-api-v2` → `develop` ⏳
-  - URL: https://github.com/8sandro8/DevToolsHub/pull/13
-- Rama activa: `feature/github-api-v2`
-- `main` sincronizado con develop
+- **PR #11 MERGEADO**: `feature/validacion-backend` → `develop` ✅
+- **PR #13 CERRADO**: `feature/github-api-v2` mergeada directamente en `develop` y luego en `main` ✅
+- **PR #12 CERRADO**: `feature/ordenamiento` (duplicado)
+- **PR #8 CERRADO**: `feature/tags-crud` (obsoleto)
+- `main` y `develop` sincronizados al 100% ✅
+- **Ramas activas**: solo `main` y `develop`
+- Rama activa de trabajo: `develop`
 
 ---
 
@@ -88,9 +89,6 @@
 
 **ACCIÓN INMEDIATA:** Ninguna — repositorio sincronizado.
 
-**SIGUIENTE FEATURE:** `Digitalización (comparativa IDEs)`
-- Feature para comparar IDEs y herramientas de desarrollo
-
 **BACKLOG (en orden):**
 | # | Feature | Estado |
 |---|---------|--------|
@@ -100,7 +98,7 @@
 | 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
 | 5 | Validación backend | ✅ Mergeado en main |
 | 6 | GitHub API + fixes UI | ✅ Mergeado en main |
-| 7 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
+| 7 | Por definir | ⏳ |
 
 ---
 
