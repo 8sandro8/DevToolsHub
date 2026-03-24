@@ -62,6 +62,12 @@ const _state = {
     isDetailMode: !!window.__DETAIL_MODE__
 };
 
+// State for sorting
+const _sortState = {
+    sortField: 'nombre',
+    sortDirection: 'asc'
+};
+
 // ============================================
 // API Client
 // ============================================
@@ -260,6 +266,37 @@ const _Utils = {
         };
     }
 };
+
+// ============================================
+// Sorting Functions
+// ============================================
+function sortTools(tools) {
+    return [...tools].sort((a, b) => {
+        let valA, valB;
+        
+        // Handle different field types
+        if (_sortState.sortField === 'fecha_creacion') {
+            // Date comparison - use ISO strings directly
+            valA = a.fecha_creacion || '';
+            valB = b.fecha_creacion || '';
+        } else if (_sortState.sortField === 'categoria') {
+            // For category, we need to get the first category name
+            valA = (a.categories && a.categories.length > 0 && a.categories[0].nombre) || '';
+            valB = (b.categories && b.categories.length > 0 && b.categories[0].nombre) || '';
+            valA = valA.toString().toLowerCase();
+            valB = valB.toString().toLowerCase();
+        } else {
+            // Default: sort by name
+            valA = (a.nombre || '').toString().toLowerCase();
+            valB = (b.nombre || '').toString().toLowerCase();
+        }
+        
+        // Compare values
+        if (valA < valB) return _sortState.sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return _sortState.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
 
 // ============================================
 // Tool Card Component (Bootstrap Card)
@@ -1164,7 +1201,8 @@ const ListView = {
             });
             grid.appendChild(emptyMsg);
         } else {
-            _state.tools.forEach((tool, index) => {
+            const sortedTools = sortTools(_state.tools);
+            sortedTools.forEach((tool, index) => {
                 const card = ToolCard.render(tool);
                 const cardElement = card.querySelector('.tool-card');
                 cardElement.style.animationDelay = `${index * 0.05}s`;
@@ -1301,6 +1339,42 @@ const ListView = {
                 const categoryFilter = _DOM.$('#category-filter');
                 if (searchInput) searchInput.value = '';
                 if (categoryFilter) categoryFilter.value = '';
+                
+                // Reset sorting
+                const sortField = _DOM.$('#sortField');
+                const sortIcon = _DOM.$('#sortIcon');
+                if (sortField) sortField.value = 'nombre';
+                _sortState.sortField = 'nombre';
+                _sortState.sortDirection = 'asc';
+                if (sortIcon) {
+                    sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                }
+            });
+        }
+        
+        // Sorting controls
+        const sortFieldEl = _DOM.$('#sortField');
+        const sortToggleEl = _DOM.$('#sortToggle');
+        
+        if (sortFieldEl) {
+            sortFieldEl.addEventListener('change', (e) => {
+                _sortState.sortField = e.target.value;
+                this.render();
+            });
+        }
+        
+        if (sortToggleEl) {
+            sortToggleEl.addEventListener('click', () => {
+                _sortState.sortDirection = _sortState.sortDirection === 'asc' ? 'desc' : 'asc';
+                const sortIcon = _DOM.$('#sortIcon');
+                if (sortIcon) {
+                    if (_sortState.sortDirection === 'asc') {
+                        sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                    } else {
+                        sortIcon.innerHTML = '<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
+                    }
+                }
+                this.render();
             });
         }
     }

@@ -68,6 +68,20 @@
                             <option value="">Todas las categorías</option>
                         </select>
                     </div>
+                    <div class="col-12 col-sm-auto col-md-auto">
+                        <div class="d-flex align-items-center gap-2">
+                            <select id="sortField" class="form-select form-select-sm" style="width: auto;">
+                                <option value="nombre">Nombre</option>
+                                <option value="categoria">Categoría</option>
+                                <option value="fecha_creacion">Fecha</option>
+                            </select>
+                            <button id="sortToggle" class="btn btn-sm btn-outline-secondary" title="Cambiar orden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" id="sortIcon">
+                                    <path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <div class="col-12 col-sm-auto">
                         <button id="btn-add-tool" class="btn btn-success w-100">
                             <span class="me-1">+</span>
