@@ -3,6 +3,8 @@
  * Core middleware and routing setup
  */
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -54,6 +56,11 @@ app.get('/', (req, res) => {
 
 app.get('/detalle', (req, res) => {
     res.sendFile(path.join(frontendPath, 'detalle.html'));
+});
+
+// Login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'login.html'));
 });
 
 // Health check

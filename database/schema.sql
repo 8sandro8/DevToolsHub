@@ -85,8 +85,20 @@ CREATE TRIGGER IF NOT EXISTS tool_au AFTER UPDATE ON tool BEGIN
 END;
 
 -- ============================================
+-- USUARIOS (AUTH)
+-- ============================================
+CREATE TABLE IF NOT EXISTS user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
 -- ÍNDICES
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_tool_nombre ON tool(nombre);
 CREATE INDEX IF NOT EXISTS idx_tool_favorito ON tool(es_favorito);
 CREATE INDEX IF NOT EXISTS idx_category_nombre ON category(nombre);
+CREATE INDEX IF NOT EXISTS idx_user_username ON user(username);

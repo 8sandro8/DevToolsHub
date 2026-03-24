@@ -4,16 +4,19 @@
  */
 
 const request = require('supertest');
-const { createTestApp, createTestDb } = require('../setup');
+const { createTestApp, createTestDb, getAuthToken } = require('../setup');
 const { fullSeed } = require('../fixtures/seed');
 
 describe('Tools API Integration', () => {
     let app;
     let db;
+    let authToken;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         db = createTestDb();
         app = createTestApp(db);
+        // Get auth token for mutation tests
+        authToken = await getAuthToken(app);
     });
 
     afterAll(() => {
@@ -28,7 +31,9 @@ describe('Tools API Integration', () => {
         db.prepare('DELETE FROM tool').run();
         db.prepare('DELETE FROM category').run();
         // Reset auto-increment counters properly
-        db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tool_category')");
+        try {
+            db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tool_category')");
+        } catch {}
         fullSeed(db);
     });
 
@@ -109,8 +114,11 @@ describe('Tools API Integration', () => {
                 rating: 4
             };
 
-            // Act
-            const response = await request(app).post('/api/tools').send(newTool);
+            // Act — requires auth token
+            const response = await request(app)
+                .post('/api/tools')
+                .set('Authorization', `Bearer ${authToken}`)
+                .send(newTool);
 
             // Assert
             expect(response.status).toBe(201);
@@ -125,8 +133,11 @@ describe('Tools API Integration', () => {
                 descripcion: 'No name provided'
             };
 
-            // Act
-            const response = await request(app).post('/api/tools').send(newTool);
+            // Act — requires auth token
+            const response = await request(app)
+                .post('/api/tools')
+                .set('Authorization', `Bearer ${authToken}`)
+                .send(newTool);
 
             // Assert
             expect(response.status).toBe(400);
@@ -141,8 +152,11 @@ describe('Tools API Integration', () => {
                 descripcion: 'Updated description'
             };
 
-            // Act
-            const response = await request(app).put('/api/tools/1').send(updateData);
+            // Act — requires auth token
+            const response = await request(app)
+                .put('/api/tools/1')
+                .set('Authorization', `Bearer ${authToken}`)
+                .send(updateData);
 
             // Assert
             expect(response.status).toBe(200);
@@ -151,8 +165,11 @@ describe('Tools API Integration', () => {
         });
 
         it('should return 404 for non-existent tool', async () => {
-            // Act
-            const response = await request(app).put('/api/tools/999').send({ nombre: 'Ghost' });
+            // Act — requires auth token
+            const response = await request(app)
+                .put('/api/tools/999')
+                .set('Authorization', `Bearer ${authToken}`)
+                .send({ nombre: 'Ghost' });
 
             // Assert
             expect(response.status).toBe(404);
@@ -161,8 +178,10 @@ describe('Tools API Integration', () => {
 
     describe('DELETE /api/tools/:id', () => {
         it('should soft-delete tool and return 200', async () => {
-            // Act
-            const response = await request(app).delete('/api/tools/1');
+            // Act — requires auth token
+            const response = await request(app)
+                .delete('/api/tools/1')
+                .set('Authorization', `Bearer ${authToken}`);
 
             // Assert
             expect(response.status).toBe(200);
@@ -174,8 +193,10 @@ describe('Tools API Integration', () => {
         });
 
         it('should return 200 even for non-existent ID (idempotent)', async () => {
-            // Act
-            const response = await request(app).delete('/api/tools/999');
+            // Act — requires auth token
+            const response = await request(app)
+                .delete('/api/tools/999')
+                .set('Authorization', `Bearer ${authToken}`);
 
             // Assert - API returns 200 for idempotent delete
             expect(response.status).toBe(200);
@@ -188,8 +209,10 @@ describe('Tools API Integration', () => {
             const initial = db.prepare('SELECT es_favorito FROM tool WHERE id = 1').get();
             const initialState = initial.es_favorito;
 
-            // Act
-            const response = await request(app).patch('/api/tools/1/favorito');
+            // Act — requires auth token
+            const response = await request(app)
+                .patch('/api/tools/1/favorito')
+                .set('Authorization', `Bearer ${authToken}`);
 
             // Assert
             expect(response.status).toBe(200);
@@ -197,8 +220,10 @@ describe('Tools API Integration', () => {
         });
 
         it('should return 404 for non-existent tool', async () => {
-            // Act
-            const response = await request(app).patch('/api/tools/999/favorito');
+            // Act — requires auth token
+            const response = await request(app)
+                .patch('/api/tools/999/favorito')
+                .set('Authorization', `Bearer ${authToken}`);
 
             // Assert
             expect(response.status).toBe(404);

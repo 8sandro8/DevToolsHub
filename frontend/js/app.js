@@ -4,6 +4,33 @@
  */
 
 // ============================================
+// Auth helpers (inline — no module import needed)
+// ============================================
+const _Auth = {
+    TOKEN_KEY: 'devtoolshub_token',
+    USER_KEY: 'devtoolshub_user',
+
+    getToken() { return localStorage.getItem(this.TOKEN_KEY); },
+    getUser() {
+        try { return JSON.parse(localStorage.getItem(this.USER_KEY)); } catch { return null; }
+    },
+    isAuthenticated() { return !!this.getToken(); },
+    clearAuth() {
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+    },
+    redirectToLogin() { window.location.href = '/login'; },
+    handleUnauthorized(status) {
+        if (status === 401 || status === 403) {
+            this.clearAuth();
+            this.redirectToLogin();
+            return true;
+        }
+        return false;
+    }
+};
+
+// ============================================
 // Configuration
 // ============================================
 const _CONFIG = {
@@ -41,9 +68,20 @@ const _state = {
 const _API = {
     async request(endpoint, options = {}) {
         const url = `${_CONFIG.API_BASE_URL}${endpoint}`;
+        const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+        const isMutation = options.method && mutationMethods.includes(options.method.toUpperCase());
+
+        // Add auth header for mutation requests
+        const authHeaders = {};
+        if (isMutation) {
+            const token = _Auth.getToken();
+            if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
         const config = {
             headers: {
                 'Content-Type': 'application/json',
+                ...authHeaders,
                 ...options.headers
             },
             ...options
@@ -51,6 +89,10 @@ const _API = {
 
         try {
             const response = await fetch(url, config);
+
+            // Handle unauthorized — redirect to login
+            if (_Auth.handleUnauthorized(response.status)) return;
+
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
                 throw new Error(error.message || `HTTP error! status: ${response.status}`);
@@ -1420,7 +1462,38 @@ const ListView = {
 // App Initialization
 // ============================================
 const App = {
+    _setupAuthNav() {
+        const navList = _DOM.$('.navbar-nav');
+        if (!navList) return;
+
+        if (_Auth.isAuthenticated()) {
+            const user = _Auth.getUser();
+            const li = document.createElement('li');
+            li.className = 'nav-item d-flex align-items-center ms-2';
+            li.innerHTML = `
+                <span class="text-muted small me-2">👤 ${user ? user.username : ''}</span>
+                <button class="btn btn-outline-secondary btn-sm" id="logoutBtn">Salir</button>
+            `;
+            navList.appendChild(li);
+
+            document.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'logoutBtn') {
+                    _Auth.clearAuth();
+                    window.location.href = '/login';
+                }
+            });
+        } else {
+            const li = document.createElement('li');
+            li.className = 'nav-item ms-2';
+            li.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesión</a>`;
+            navList.appendChild(li);
+        }
+    },
+
     init() {
+        // Setup auth UI in navbar
+        this._setupAuthNav();
+
         // Check for favorites filter in URL
         const favoritosParam = _Utils.getQueryParam('favoritos');
         if (favoritosParam === 'true') {
