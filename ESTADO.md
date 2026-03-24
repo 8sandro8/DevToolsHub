@@ -41,18 +41,55 @@
 
 ---
 
-## 🎯 Próximo paso exacto
+## 🎯 Backlog actualizado — Lista para el 10
 
-**BACKLOG (en orden):**
-| # | Feature | Estado |
-|---|---------|--------|
-| 1 | ~~Login básico~~ | ✅ Mergeado |
-| 2 | ~~Upload de imágenes~~ | ✅ Mergeado |
-| 3 | ~~PWA~~ | ✅ Mergeado |
-| 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
-| 5 | Digitalización (comparativa IDEs) | 🙋 Lo hace el usuario a mano |
+> Cruzado con los requisitos de la AA2 (Lenguajes de Marcas + Entornos de Desarrollo).
+> Fecha revisión: 2026-03-24
 
-**Estado actual: BACKLOG DE FEATURES COMPLETADO** 🎉
+---
+
+### ✅ Ya cubierto (no tocar)
+
+| Requisito | Asignatura | Pts | Estado |
+|-----------|-----------|-----|--------|
+| Backend CRUD completo ≥2 entidades (tools + categorías) | Entornos | 1 | ✅ |
+| Frontend CRUD completo ≥2 entidades | Entornos | 1 | ✅ |
+| README con instrucciones + repo GitHub | Entornos | 1 | ✅ |
+| Ramas de trabajo + Pull Requests | Entornos | 1 | ✅ |
+| Relaciones entre entidades (tool_tag, categorías) | Entornos (bonus) | 1 | ✅ |
+| Login usuario/contraseña (JWT) | Entornos (bonus) | 1 | ✅ |
+| Wiki GitHub con spec de la API | Entornos (bonus) | 1 | ✅ |
+| Colección Postman/HoppScotch | Entornos (bonus) | 1 | ✅ |
+| API con operaciones de imágenes (upload) | Entornos (bonus) | 1 | ✅ |
+| Lista de herramientas con nombre + 3 características | Lenguajes (home) | 2 | ✅ |
+| Buscador en home | Lenguajes (home) | 1 | ✅ |
+| Click elemento → página detalle | Lenguajes (home) | 1 | ✅ |
+| CRUD completo desde el frontend | Lenguajes (home) | 1 | ✅ |
+| Página detalle: imagen + datos ampliados de nuestra API | Lenguajes (detalle) | 2 | ✅ (parcial) |
+
+---
+
+### 🔴 PENDIENTE — Tareas para el 10 (ordenadas por prioridad/impacto)
+
+| # | Tarea | Asignatura | Pts | Prioridad |
+|---|-------|-----------|-----|-----------|
+| 1 | **Integración API externa** en página detalle: conectar a GitHub/NPM API para enriquecer la ficha de cada herramienta con datos en tiempo real (ej: repo stats, versión npm, etc.) — necesario para los 2 ptos de "múltiples endpoints" | Lenguajes (detalle) | 2 | 🔴 Alta |
+| 2 | **Validación backend con `express-validator`**: añadir middleware de validación en las rutas POST/PUT de tools y categorías; respuesta 422 con errores detallados | Entornos (bonus) | 1 | 🔴 Alta |
+| 3 | **Validación frontend en formularios**: mostrar mensajes de error inline antes de enviar al backend (campo vacío, URL inválida, longitud, etc.) | Entornos (bonus) | 1 | 🔴 Alta |
+| 4 | **CRUD completo de Tags en frontend**: actualmente falta el botón Editar tag (PUT). Completar el ciclo Create/Read/Update/Delete visible en UI | Entornos (bonus) | 1 | 🟡 Media |
+| 5 | **Diseño y limpieza de código**: revisar coherencia visual (colores, tipografía, espaciado), limpiar comentarios muertos y `console.log` en producción, asegurar responsive en móvil | Lenguajes (detalle) | 2 | 🟡 Media |
+| 6 | **Explorar más endpoints de la API externa** y mostrarlos en secciones distintas del detalle (ej: sección "Stats del repo", sección "Últimas releases", etc.) | Lenguajes (detalle) | 2 | 🟡 Media (incluido en tarea #1) |
+
+---
+
+### 📊 Puntuación estimada actual vs objetivo
+
+| Asignatura | Ptos actuales | Ptos objetivo | Falta |
+|-----------|--------------|--------------|-------|
+| Lenguajes de Marcas | ~7/11 | 11/11 | Tareas 1, 5, 6 |
+| Entornos de Desarrollo | ~8/10 (aprox.) | 10/10 | Tareas 2, 3, 4 |
+
+> ⚠️ Nota: Lenguajes de Marcas requiere API **externa**. Nuestra app usa API propia — eso ya cubre el CRUD (1 pto), pero los 2 ptos de "múltiples endpoints" exigen llamadas a servicios externos como GitHub API o NPM Registry.
 
 ---
 
