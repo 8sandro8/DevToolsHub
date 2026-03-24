@@ -13,6 +13,11 @@
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
 </head>
 <body>
     <!-- Navbar Bootstrap -->
@@ -66,6 +71,17 @@
     <script src="js/app.js" type="module"></script>
     <script>
         window.__DETAIL_MODE__ = true;
+    </script>
+
+    <!-- Registro Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[SW] Registrado:', reg.scope))
+            .catch(err => console.error('[SW] Error al registrar:', err));
+        });
+      }
     </script>
 </body>
 </html>
