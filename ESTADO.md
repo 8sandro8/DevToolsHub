@@ -5,7 +5,7 @@
 
 ## Última actualización
 **Fecha:** 2026-03-24
-**Sesión:** Validación backend — PR #11 abierto ✅
+**Sesión:** GitHub API integration — PR abierto ✅
 
 ---
 
@@ -49,6 +49,12 @@
   - Middleware `validate` aplicado uniformemente en POST y PUT
   - Nuevo endpoint `PUT /api/categories/:id` con validación completa
   - Tests nuevos en `backend/tests/integration/categories.api.test.js`
+- **GitHub API integration** ✅ PR abierto (`feature/github-api-v2` → `develop`):
+  - `GitHubController` — extrae owner/repo de URL, llama a GitHub API
+  - Endpoint `GET /api/tools/:id/github-stats` — devuelve stars, forks, último commit, nombre del repo
+  - Soporte para `GITHUB_TOKEN` opcional (aumenta rate limit de 60 a 5000 req/hora)
+  - Frontend: sección "Stats del Repo GitHub" en página detalle con cards Bootstrap 5
+  - Carga asíncrona de stats al abrir la página de detalle
 
 ### Git / GitHub
 - **PR #3 mergeado**: `feature/login-basico` → `develop` ✅
@@ -57,7 +63,8 @@
 - **PR #7 mergeado**: `feature/ordenamiento` → `develop` ✅
 - **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
   - URL: https://github.com/8sandro8/DevToolsHub/pull/11
-- Rama activa: `develop` (tras merge)
+- **PR #12 abierto**: `feature/github-api-v2` → `develop` ⏳
+- Rama activa: `feature/github-api-v2`
 - `main` pendiente de sincronizar cuando convenga
 
 ---
@@ -73,11 +80,10 @@
 
 ## 🎯 Próximo paso exacto
 
-**ACCIÓN INMEDIATA:** Mergear PR #11 (`feature/validacion-backend`) cuando el usuario lo apruebe.
+**ACCIÓN INMEDIATA:** Mergear PR #11 (`feature/validacion-backend`) y PR #12 (`feature/github-api-v2`) cuando el usuario los apruebe.
 
-**SIGUIENTE FEATURE:** `GitHub API integration`
-- Integración con GitHub API para mostrar stats de repos en página detalle
-- Ya existe rama `feature/github-api-clean` con trabajo previo
+**SIGUIENTE FEATURE:** `Digitalización (comparativa IDEs)`
+- Feature para comparar IDEs y herramientas de desarrollo
 
 **BACKLOG (en orden):**
 | # | Feature | Estado |
@@ -87,7 +93,7 @@
 | 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
 | 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
 | 5 | Validación backend | ⏳ PR #11 abierto |
-| 6 | GitHub API integration | 🔲 Pendiente |
+| 6 | GitHub API integration | ⏳ PR #12 abierto |
 | 7 | Digitalización (comparativa IDEs) | ⏳ Entrega: 27 mayo 2026 |
 
 ---
