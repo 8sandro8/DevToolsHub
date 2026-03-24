@@ -64,6 +64,7 @@
 - **PR #11 abierto**: `feature/validacion-backend` → `develop` ⏳
   - URL: https://github.com/8sandro8/DevToolsHub/pull/11
 - **PR #12 abierto**: `feature/github-api-v2` → `develop` ⏳
+  - URL: https://github.com/8sandro8/DevToolsHub/pull/13
 - Rama activa: `feature/github-api-v2`
 - `main` pendiente de sincronizar cuando convenga
 
