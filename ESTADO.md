@@ -87,7 +87,43 @@
 
 ## 🎯 Próximo paso exacto
 
-**TAREA 1 (primer pendiente a atacar):** ⏳ **Publicación del proyecto (despliegue/producción)**
+**Tarea 1 pendiente:** README del proyecto (obligatorio Entornos)
+
+**BACKLOG AA2 — Entornos de Desarrollo**
+
+Obligatorios (1 pto c/u):
+| # | Requisito | Estado |
+|---|-----------|--------|
+| E1 | Backend CRUD completo (≥2 elementos) API REST | ✅ Hecho |
+| E2 | Frontend CRUD completo (≥2 elementos) | ✅ Hecho |
+| E3 | README en GitHub con info del proyecto e instrucciones de puesta en marcha | ⏳ Pendiente |
+| E4 | Cada funcionalidad gestionada como rama + PR en GitHub | ✅ Hecho |
+
+Adicionales (1 pto c/u):
+| # | Requisito | Estado |
+|---|-----------|--------|
+| E5 | Elementos del modelo relacionados entre sí | ✅ Hecho (tool↔category↔tag) |
+| E6 | Login/contraseña protegiendo zona del frontend | ✅ Hecho (JWT) |
+| E7 | Validación backend con express-validator | ✅ Hecho |
+| E8 | Validación frontend en formularios antes de enviar | ⏳ Pendiente |
+| E9 | Framework React o Vue en frontend | ⏳ Pendiente (usa Vanilla JS) |
+| E10 | Nuevo elemento en modelo de datos con CRUD completo (backend + frontend) | ✅ Hecho (Tags) |
+| E11 | Wiki en GitHub con especificación de la API | ⏳ Pendiente |
+| E12 | Colección Postman/HoppScotch con ejemplos de todos los endpoints | ⏳ Pendiente |
+| E13 | API con operación para trabajar con imágenes | ✅ Hecho (multer upload/delete) |
+
+**BACKLOG AA2 — Lenguajes de Marcas**
+
+(pendiente de leer PDF — añadir cuando sea legible)
+
+---
+
+**PENDIENTES EN ORDEN DE ATAQUE:**
+1. E3 — README (obligatorio, rápido)
+2. E8 — Validación frontend formularios
+3. E11 — Wiki GitHub API
+4. E12 — Colección Postman/HoppScotch
+5. LM pendientes (cuando se lea el PDF)
 
 ---
 
