@@ -3,6 +3,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Environment variables (secrets)
+.env
+backend/.env
+
 # Database
 *.db
 *.db-shm

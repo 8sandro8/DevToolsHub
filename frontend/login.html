@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DevToolsHub - Iniciar sesión">
+    <title>DevToolsHub - Login</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top bg-white border-bottom shadow-sm">
+        <div class="container">
+            <a href="/" class="navbar-brand d-flex align-items-center">
+                <span class="fs-4 me-2">🛠️</span>
+                <span class="fw-bold">DevToolsHub</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Login / Register Card -->
+    <main class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-12 col-sm-10 col-md-7 col-lg-5">
+
+                    <div class="text-center mb-4">
+                        <span class="fs-1">🔐</span>
+                        <h1 class="h3 mt-2 fw-bold">Acceso a DevToolsHub</h1>
+                        <p class="text-muted">Inicia sesión o crea una cuenta para gestionar las herramientas</p>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+
+                            <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab"
+                                        data-bs-target="#loginPanel" type="button" role="tab"
+                                        aria-controls="loginPanel" aria-selected="true">
+                                        Iniciar sesión
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="register-tab" data-bs-toggle="tab"
+                                        data-bs-target="#registerPanel" type="button" role="tab"
+                                        aria-controls="registerPanel" aria-selected="false">
+                                        Registrarse
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="authTabContent">
+
+                                <!-- LOGIN PANEL -->
+                                <div class="tab-pane fade show active" id="loginPanel" role="tabpanel"
+                                    aria-labelledby="login-tab">
+                                    <form id="loginForm" novalidate>
+                                        <div class="mb-3">
+                                            <label for="loginUsername" class="form-label fw-semibold">Usuario</label>
+                                            <input type="text" class="form-control" id="loginUsername"
+                                                placeholder="Tu nombre de usuario" autocomplete="username" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="loginPassword" class="form-label fw-semibold">Contraseña</label>
+                                            <input type="password" class="form-control" id="loginPassword"
+                                                placeholder="Tu contraseña" autocomplete="current-password" required>
+                                        </div>
+                                        <div id="loginError" class="alert alert-danger d-none py-2" role="alert"></div>
+                                        <button type="submit" class="btn btn-primary w-100" id="loginBtn">
+                                            <span class="btn-text">Entrar</span>
+                                            <span class="btn-spinner spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- REGISTER PANEL -->
+                                <div class="tab-pane fade" id="registerPanel" role="tabpanel"
+                                    aria-labelledby="register-tab">
+                                    <form id="registerForm" novalidate>
+                                        <div class="mb-3">
+                                            <label for="registerUsername" class="form-label fw-semibold">Usuario</label>
+                                            <input type="text" class="form-control" id="registerUsername"
+                                                placeholder="Elige un nombre de usuario" autocomplete="username" required>
+                                            <div class="form-text">Mínimo 3 caracteres</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="registerPassword" class="form-label fw-semibold">Contraseña</label>
+                                            <input type="password" class="form-control" id="registerPassword"
+                                                placeholder="Elige una contraseña" autocomplete="new-password" required>
+                                            <div class="form-text">Mínimo 6 caracteres</div>
+                                        </div>
+                                        <div id="registerError" class="alert alert-danger d-none py-2" role="alert"></div>
+                                        <div id="registerSuccess" class="alert alert-success d-none py-2" role="alert"></div>
+                                        <button type="submit" class="btn btn-success w-100" id="registerBtn">
+                                            <span class="btn-text">Crear cuenta</span>
+                                            <span class="btn-spinner spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { login, register } from './js/api/authApi.js';
+        import { setAuth, isAuthenticated } from './js/auth.js';
+
+        // If already logged in, redirect home
+        if (isAuthenticated()) {
+            window.location.href = '/';
+        }
+
+        // ── Helpers ──────────────────────────────────────
+        function setLoading(btn, loading) {
+            const text = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.btn-spinner');
+            btn.disabled = loading;
+            text.textContent = loading ? 'Cargando...' : btn.dataset.defaultText;
+            spinner.classList.toggle('d-none', !loading);
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove('d-none');
+        }
+
+        function hideError(elementId) {
+            document.getElementById(elementId).classList.add('d-none');
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.classList.remove('d-none');
+        }
+
+        // Store default button text
+        document.getElementById('loginBtn').dataset.defaultText = 'Entrar';
+        document.getElementById('registerBtn').dataset.defaultText = 'Crear cuenta';
+
+        // ── Login Form ────────────────────────────────────
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError('loginError');
+            const btn = document.getElementById('loginBtn');
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showError('loginError', 'Introduce usuario y contraseña');
+                return;
+            }
+
+            setLoading(btn, true);
+            try {
+                const { token, user } = await login(username, password);
+                setAuth(token, user);
+                window.location.href = '/';
+            } catch (err) {
+                showError('loginError', err.message || 'Error al iniciar sesión');
+                setLoading(btn, false);
+            }
+        });
+
+        // ── Register Form ─────────────────────────────────
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError('registerError');
+            document.getElementById('registerSuccess').classList.add('d-none');
+            const btn = document.getElementById('registerBtn');
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+
+            if (!username || !password) {
+                showError('registerError', 'Introduce usuario y contraseña');
+                return;
+            }
+
+            setLoading(btn, true);
+            try {
+                await register(username, password);
+                showSuccess('registerSuccess', `Usuario "${username}" creado. Ahora puedes iniciar sesión.`);
+                document.getElementById('registerForm').reset();
+                // Switch to login tab
+                document.getElementById('login-tab').click();
+                document.getElementById('loginUsername').value = username;
+            } catch (err) {
+                showError('registerError', err.message || 'Error al registrarse');
+            } finally {
+                setLoading(btn, false);
+            }
+        });
+    </script>
+
+</body>
+</html>
