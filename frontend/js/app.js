@@ -164,6 +164,10 @@ const _API = {
 
     getTags() {
         return this.request('/tags');
+    },
+
+    getGitHubStats(toolId) {
+        return this.request(`/tools/${toolId}/github-stats`);
     }
 };
 
@@ -264,6 +268,32 @@ const _Utils = {
             text: text.substring(0, maxLength).trim() + '...',
             truncated: true
         };
+    },
+
+    formatRelativeTime(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffWeeks = Math.floor(diffDays / 7);
+        const diffMonths = Math.floor(diffDays / 30);
+        const diffYears = Math.floor(diffDays / 365);
+        
+        const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+        
+        if (diffYears !== 0) return rtf.format(-diffYears, 'year');
+        if (diffMonths !== 0) return rtf.format(-diffMonths, 'month');
+        if (diffWeeks !== 0) return rtf.format(-diffWeeks, 'week');
+        if (diffDays !== 0) return rtf.format(-diffDays, 'day');
+        if (diffHours !== 0) return rtf.format(-diffHours, 'hour');
+        if (diffMinutes !== 0) return rtf.format(-diffMinutes, 'minute');
+        
+        return 'hace un momento';
     }
 };
 
@@ -841,8 +871,11 @@ const ToolForm = {
     },
     
     isValidUrl(string) {
+        if (!string) return true; // Allow empty URLs
         try {
-            new URL(string);
+            // If no protocol, add one for validation purposes
+            const urlToCheck = string.match(/^https?:\/\//) ? string : 'https://' + string;
+            new URL(urlToCheck);
             return true;
         } catch (_) {
             return false;
@@ -1066,8 +1099,47 @@ const DetailView = {
             
             card.appendChild(metaSection);
             
+            // GitHub Stats section - will be loaded separately
+            const githubSection = _DOM.createElement('div', 'detail-section');
+            githubSection.id = 'github-stats-section';
+            
+            const githubTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Stats del Repo GitHub'
+            });
+            githubSection.appendChild(githubTitle);
+            
+            // Skeleton loader
+            const skeletonLoader = _DOM.createElement('div', 'github-stats-skeleton');
+            skeletonLoader.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Estrellas</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Forks</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-8"></span>
+                        </div>
+                        <p class="mb-0 small text-muted">Último Commit</p>
+                    </div>
+                </div>
+            `;
+            githubSection.appendChild(skeletonLoader);
+            card.appendChild(githubSection);
+            
             container.appendChild(backLink);
             container.appendChild(card);
+            
+            // Load GitHub stats after rendering
+            this.loadGitHubStats(toolId);
             
             // Setup read more button event
             this.setupReadMoreButton();
@@ -1123,6 +1195,58 @@ const DetailView = {
             window.location.href = 'index.html';
         } catch (error) {
             Toast.error('Error al eliminar la herramienta');
+        }
+    },
+
+    async loadGitHubStats(toolId) {
+        const section = _DOM.$('#github-stats-section');
+        if (!section) return;
+
+        try {
+            const stats = await _API.getGitHubStats(toolId);
+            
+            // Clear skeleton loader
+            const skeleton = section.querySelector('.github-stats-skeleton');
+            if (skeleton) skeleton.remove();
+            
+            // Create stats display
+            const statsDiv = _DOM.createElement('div', 'github-stats-content');
+            statsDiv.innerHTML = `
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-warning">
+                            <i class="bi bi-star-fill"></i> ${stats.starsFormatted}
+                        </div>
+                        <p class="mb-0 small text-muted">Estrellas</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-primary">
+                            <i class="bi bi-git"></i> ${stats.forksFormatted}
+                        </div>
+                        <p class="mb-0 small text-muted">Forks</p>
+                    </div>
+                    <div class="col-4">
+                        <div class="fs-4 fw-bold text-success">
+                            <i class="bi bi-calendar-event"></i> ${_Utils.formatRelativeTime(stats.lastCommit)}
+                        </div>
+                        <p class="mb-0 small text-muted">Último Commit</p>
+                    </div>
+                </div>
+            `;
+            section.appendChild(statsDiv);
+            
+        } catch (error) {
+            // Silently hide section if tool has no GitHub URL or URL is invalid
+            // Only show "Stats no disponibles" for API errors
+            const skeleton = section.querySelector('.github-stats-skeleton');
+            if (skeleton) {
+                skeleton.innerHTML = `
+                    <div class="text-center text-muted py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span class="small">Stats no disponibles</span>
+                    </div>
+                `;
+            }
         }
     }
 };
