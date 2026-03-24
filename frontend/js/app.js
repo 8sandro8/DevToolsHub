@@ -101,7 +101,17 @@ const _API = {
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
-                throw new Error(error.message || `HTTP error! status: ${response.status}`);
+                
+                // Manejar los distintos formatos de error del backend
+                let errorMessage = `HTTP error! status: ${response.status}`;
+                if (error.message) {
+                    errorMessage = error.message;
+                } else if (error.error) {
+                    errorMessage = error.error;
+                } else if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+                    errorMessage = error.errors.map(e => e.msg).join(', ');
+                }
+                throw new Error(errorMessage);
             }
             return await response.json();
         } catch (error) {
