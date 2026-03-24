@@ -87,18 +87,19 @@
 
 ## 🎯 Próximo paso exacto
 
-**ACCIÓN INMEDIATA:** Ninguna — repositorio sincronizado.
+**ACCIÓN INMEDIATA:** Ninguna — todas las tareas de la AA2 están completadas ✅
 
-**BACKLOG (en orden):**
+**BACKLOG AA2 - Requisitos completos:**
 | # | Feature | Estado |
 |---|---------|--------|
-| 1 | ~~Login básico~~ | ✅ Mergeado |
-| 2 | ~~Upload de imágenes~~ | ✅ Mergeado |
-| 3 | ~~PWA (Service Worker + manifest)~~ | ✅ Mergeado |
-| 4 | ~~Ordenamiento asc/desc~~ | ✅ Mergeado |
-| 5 | Validación backend | ✅ Mergeado en main |
-| 6 | GitHub API + fixes UI | ✅ Mergeado en main |
-| 7 | Por definir | ⏳ |
+| 1 | GitHub API + stats del repo | ✅ Mergeado en main |
+| 2 | Login básico JWT | ✅ Mergeado en main |
+| 3 | Upload de imágenes | ✅ Mergeado en main |
+| 4 | PWA (Service Worker + manifest) | ✅ Mergeado en main |
+| 5 | Ordenamiento asc/desc | ✅ Mergeado en main |
+| 6 | Validación backend | ✅ Mergeado en main |
+
+**Todas las tareas de la AA2 completadas ✅**
 
 ---
 
