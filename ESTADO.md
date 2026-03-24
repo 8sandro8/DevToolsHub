@@ -87,19 +87,45 @@
 
 ## 🎯 Próximo paso exacto
 
-**ACCIÓN INMEDIATA:** Ninguna — todas las tareas de la AA2 están completadas ✅
+**TAREA 1 (primer pendiente a atacar):** ⏳ **Publicación del proyecto (despliegue/producción)**
 
-**BACKLOG AA2 - Requisitos completos:**
-| # | Feature | Estado |
-|---|---------|--------|
-| 1 | GitHub API + stats del repo | ✅ Mergeado en main |
-| 2 | Login básico JWT | ✅ Mergeado en main |
-| 3 | Upload de imágenes | ✅ Mergeado en main |
-| 4 | PWA (Service Worker + manifest) | ✅ Mergeado en main |
-| 5 | Ordenamiento asc/desc | ✅ Mergeado en main |
-| 6 | Validación backend | ✅ Mergeado en main |
+---
 
-**Todas las tareas de la AA2 completadas ✅**
+## 📋 BACKLOG DEFINITIVO AA2 — Lenguajes de Marcas + Entornos
+
+### Requisitos OBLIGATORIOS
+
+| # | Requisito | Asignatura | Estado |
+|---|-----------|------------|--------|
+| 1 | Login/Register con JWT | Lenguajes de Marcas | ✅ |
+| 2 | Listado de herramientas con búsqueda por nombre | Lenguajes de Marcas | ✅ |
+| 3 | Alta/Baja/Modificación de herramientas (CRUD completo) | Lenguajes de Marcas | ✅ |
+| 4 | Sistema de favoritos (marcar/desmarcar) | Lenguajes de Marcas | ✅ |
+| 5 | Tags - creación, edición, eliminación | Lenguajes de Marcas | ✅ |
+| 6 | Ver detalles completos de una herramienta | Lenguajes de Marcas | ✅ |
+| 7 | PWA - manifest.json + service worker + iconos | Lenguajes de Marcas | ✅ |
+| 8 | GitHub API - stats del repositorio | Lenguajes de Marcas | ✅ |
+| 9 | Imágenes - upload/download de imágenes de herramientas | Lenguajes de Marcas | ✅ |
+| 10 | Ordenación ASC/DESC por nombre, categoría y fecha | Lenguajes de Marcas | ✅ |
+| 11 | Validación backend (express-validator, límites longitud) | Lenguajes de Marcas | ✅ |
+| 12 | **Publicación del proyecto (despliegue/producción)** | Lenguajes de Marcas | ⏳ |
+
+### Requisitos ADICIONALES
+
+| # | Requisito | Asignatura | Estado |
+|---|-----------|------------|--------|
+| 1 | Filtros avanzados (por tag, categoría, año) | Lenguajes de Marcas | ⏳ |
+| 2 | Modo oscuro/claro | Lenguajes de Marcas | ⏳ |
+| 3 | Historial de cambios en herramientas | Lenguajes de Marcas | ⏳ |
+| 4 | Sistema de comentarios/opiniones | Lenguajes de Marcas | ⏳ |
+| 5 | Uso de API externas (además de GitHub) | Lenguajes de Marcas | ⏳ |
+| 6 | Tests de integración | Entornos | ⏳ |
+| 7 | Documentación técnica (README, INSTALL) | Entornos | ⏳ |
+
+---
+
+**RESUMEN:** 11/12 obligatorios ✅ — 1 pendiente ⏳
+**Adicionales completados:** 0/7 ✅
 
 ---
 
