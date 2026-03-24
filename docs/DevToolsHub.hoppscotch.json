@@ -1,0 +1,340 @@
+{
+  "version": "2.0.0",
+  "name": "DevToolsHub API",
+  "description": "Colección completa de endpoints para la API de DevToolsHub\n\nURL Base: {{base_url}}\n\nAutenticación: Bearer token en header Authorization",
+  "variables": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "folders": [
+    {
+      "name": "Auth",
+      "id": "folder-auth"
+    },
+    {
+      "name": "Tools",
+      "id": "folder-tools"
+    },
+    {
+      "name": "Categories",
+      "id": "folder-categories"
+    },
+    {
+      "name": "Tags",
+      "id": "folder-tags"
+    }
+  ],
+  "requests": [
+    {
+      "id": "auth-register",
+      "name": "Register User",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/register",
+      "description": "Registra un nuevo usuario en el sistema",
+      "folder": "folder-auth",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": "{\n  \"username\": \"sandrodev\",\n  \"password\": \"SecurePass123!\"\n}"
+    },
+    {
+      "id": "auth-login",
+      "name": "Login User",
+      "method": "POST",
+      "url": "{{base_url}}/api/auth/login",
+      "description": "Inicia sesión y obtiene token JWT",
+      "folder": "folder-auth",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": "{\n  \"username\": \"sandrodev\",\n  \"password\": \"SecurePass123!\"\n}"
+    },
+    {
+      "id": "tools-get-all",
+      "name": "Get All Tools",
+      "method": "GET",
+      "url": "{{base_url}}/api/tools",
+      "description": "Lista todas las herramientas (público)",
+      "folder": "folder-tools"
+    },
+    {
+      "id": "tools-get-by-id",
+      "name": "Get Tool by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/tools/:id",
+      "description": "Obtiene detalle de una herramienta (público)",
+      "folder": "folder-tools"
+    },
+    {
+      "id": "tools-create",
+      "name": "Create Tool",
+      "method": "POST",
+      "url": "{{base_url}}/api/tools",
+      "description": "Crea una nueva herramienta (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"Visual Studio Code\",\n  \"description\": \"Editor de código fuente gratuito y multiplataforma desarrollado por Microsoft\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"category_id\": 1\n}"
+    },
+    {
+      "id": "tools-update",
+      "name": "Update Tool",
+      "method": "PUT",
+      "url": "{{base_url}}/api/tools/:id",
+      "description": "Actualiza una herramienta existente (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"VS Code Updated\",\n  \"description\": \"Editor de código actualizado con más funcionalidades\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"category_id\": 2\n}"
+    },
+    {
+      "id": "tools-delete",
+      "name": "Delete Tool",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/tools/:id",
+      "description": "Elimina una herramienta (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    },
+    {
+      "id": "tools-toggle-favorite",
+      "name": "Toggle Favorite",
+      "method": "PATCH",
+      "url": "{{base_url}}/api/tools/:id/favorite",
+      "description": "Alterna el estado de favorito (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    },
+    {
+      "id": "tools-upload-image",
+      "name": "Upload Tool Image",
+      "method": "POST",
+      "url": "{{base_url}}/api/tools/:id/image",
+      "description": "Sube una imagen para la herramienta (requiere JWT, multipart/form-data)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    },
+    {
+      "id": "tools-delete-image",
+      "name": "Delete Tool Image",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/tools/:id/image",
+      "description": "Elimina la imagen de una herramienta (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    },
+    {
+      "id": "tools-github-stats",
+      "name": "Get GitHub Stats",
+      "method": "GET",
+      "url": "{{base_url}}/api/tools/:id/github-stats",
+      "description": "Obtiene estadísticas del repositorio GitHub (público)",
+      "folder": "folder-tools"
+    },
+    {
+      "id": "tools-assign-tags",
+      "name": "Assign Tags to Tool",
+      "method": "POST",
+      "url": "{{base_url}}/api/tools/:id/tags",
+      "description": "Asigna tags a una herramienta (requiere JWT)",
+      "folder": "folder-tools",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"tag_ids\": [1, 2, 3]\n}"
+    },
+    {
+      "id": "categories-get-all",
+      "name": "Get All Categories",
+      "method": "GET",
+      "url": "{{base_url}}/api/categories",
+      "description": "Lista todas las categorías (público)",
+      "folder": "folder-categories"
+    },
+    {
+      "id": "categories-get-by-id",
+      "name": "Get Category by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/categories/:id",
+      "description": "Obtiene detalle de una categoría (público)",
+      "folder": "folder-categories"
+    },
+    {
+      "id": "categories-create",
+      "name": "Create Category",
+      "method": "POST",
+      "url": "{{base_url}}/api/categories",
+      "description": "Crea una nueva categoría (requiere JWT)",
+      "folder": "folder-categories",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"Desarrollo Web\",\n  \"description\": \"Herramientas para desarrollo web y frontend\"\n}"
+    },
+    {
+      "id": "categories-update",
+      "name": "Update Category",
+      "method": "PUT",
+      "url": "{{base_url}}/api/categories/:id",
+      "description": "Actualiza una categoría existente (requiere JWT)",
+      "folder": "folder-categories",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"Desarrollo Web Moderno\",\n  \"description\": \"Herramientas actualizadas para desarrollo web\"\n}"
+    },
+    {
+      "id": "categories-delete",
+      "name": "Delete Category",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/categories/:id",
+      "description": "Elimina una categoría (requiere JWT)",
+      "folder": "folder-categories",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    },
+    {
+      "id": "tags-get-all",
+      "name": "Get All Tags",
+      "method": "GET",
+      "url": "{{base_url}}/api/tags",
+      "description": "Lista todos los tags (público)",
+      "folder": "folder-tags"
+    },
+    {
+      "id": "tags-get-by-id",
+      "name": "Get Tag by ID",
+      "method": "GET",
+      "url": "{{base_url}}/api/tags/:id",
+      "description": "Obtiene detalle de un tag (público)",
+      "folder": "folder-tags"
+    },
+    {
+      "id": "tags-create",
+      "name": "Create Tag",
+      "method": "POST",
+      "url": "{{base_url}}/api/tags",
+      "description": "Crea un nuevo tag (requiere JWT)",
+      "folder": "folder-tags",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"open-source\"\n}"
+    },
+    {
+      "id": "tags-update",
+      "name": "Update Tag",
+      "method": "PUT",
+      "url": "{{base_url}}/api/tags/:id",
+      "description": "Actualiza un tag existente (requiere JWT)",
+      "folder": "folder-tags",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ],
+      "body": "{\n  \"name\": \"open-source-updated\"\n}"
+    },
+    {
+      "id": "tags-delete",
+      "name": "Delete Tag",
+      "method": "DELETE",
+      "url": "{{base_url}}/api/tags/:id",
+      "description": "Elimina un tag (requiere JWT)",
+      "folder": "folder-tags",
+      "headers": [
+        {
+          "key": "Authorization",
+          "value": "Bearer <<token>>"
+        }
+      ]
+    }
+  ]
+}
