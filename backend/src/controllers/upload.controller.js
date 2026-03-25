@@ -6,11 +6,12 @@
 const ToolService = require('../services/tool.service');
 const path = require('path');
 const fs = require('fs');
+const { UPLOADS_DIR } = require('../config/paths');
 
 class UploadController {
     constructor(db) {
         this.service = new ToolService(db);
-        this.uploadsDir = path.join(__dirname, '..', '..', 'uploads');
+        this.uploadsDir = UPLOADS_DIR;
     }
 
     // POST /api/tools/:id/image - Upload image
@@ -67,7 +68,7 @@ class UploadController {
 
             // If tool has an image, delete the file
             if (tool.image_url) {
-                const imagePath = path.join(__dirname, '..', '..', tool.image_url);
+                const imagePath = path.join(this.uploadsDir, path.basename(tool.image_url));
                 
                 // Check if file exists and delete it
                 if (fs.existsSync(imagePath)) {

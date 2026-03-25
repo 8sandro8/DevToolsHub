@@ -14,6 +14,7 @@ const createTagRoutes = require('./routes/tag.routes');
 const createAuthRoutes = require('./routes/auth.routes');
 const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
+const { UPLOADS_DIR } = require('./config/paths');
 
 const app = express();
 
@@ -40,8 +41,7 @@ const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
 
 // Static files - Uploads
-const uploadsPath = path.resolve(__dirname, '..', 'uploads');
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Root route - TEST
 app.get('/test', (req, res) => {

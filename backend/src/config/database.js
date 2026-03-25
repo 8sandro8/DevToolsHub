@@ -6,9 +6,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
-
-// Database file path - configurable via environment
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', '..', 'data', 'devtools.db');
+const { DB_PATH } = require('./paths');
 const SCHEMA_PATH = path.join(__dirname, '..', '..', 'database', 'schema.sql');
 const SEED_PATH = path.join(__dirname, '..', '..', 'database', 'seed.sql');
 
