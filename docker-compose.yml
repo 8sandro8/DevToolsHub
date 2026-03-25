@@ -1,0 +1,18 @@
+services:
+  devtoolshub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devtoolshub
+    ports:
+      - "4002:4002"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4002
+      DB_PATH: /data/devtools.db
+      UPLOADS_DIR: /data/uploads
+      CORS_ORIGIN: '*'
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
