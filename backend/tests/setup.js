@@ -13,7 +13,7 @@ const fs = require('fs');
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_for_tests';
 
 // Store the schema for reuse
-const schemaPath = path.join(__dirname, '..', '..', 'database', 'schema.sql');
+const schemaPath = path.resolve(__dirname, '..', '..', '..', 'database', 'schema.sql');
 let schemaContent = '';
 
 // Load schema once

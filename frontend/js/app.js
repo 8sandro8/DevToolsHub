@@ -3,6 +3,8 @@
  * ES6+ Vanilla JavaScript with Bootstrap 5
  */
 
+import { initThemeToggle } from './theme.js';
+
 // ============================================
 // Auth helpers (inline — no module import needed)
 // ============================================
@@ -50,6 +52,8 @@ const _state = {
     filters: {
         search: '',
         category: '',
+        tag: '',
+        anio: '',
         favorito: false,
         page: 1
     },
@@ -124,6 +128,8 @@ const _API = {
         const params = new URLSearchParams();
         if (filters.search) params.append('buscar', filters.search);
         if (filters.category) params.append('categoria', filters.category);
+        if (filters.tag) params.append('tag', filters.tag);
+        if (filters.anio) params.append('anio', filters.anio);
         if (filters.page) params.append('page', filters.page);
         if (filters.limit) params.append('limit', filters.limit);
         if (filters.favorito) params.append('favorito', 'true');
@@ -357,10 +363,20 @@ const ToolCard = {
         
         const name = card.querySelector('.tool-name');
         name.textContent = tool.nombre;
-        
+
+        const primaryCategory = card.querySelector('.tool-primary-category');
+        primaryCategory.textContent = (tool.categories && tool.categories.length > 0)
+            ? tool.categories[0].nombre
+            : 'Sin categoría';
+
         const description = card.querySelector('.tool-description');
-        description.textContent = tool.descripcion || 'Sin descripción';
-        
+        description.textContent = _Utils.truncateText(tool.descripcion || 'Sin descripción', 120).text;
+
+        const tagsSummary = card.querySelector('.tool-tags-summary');
+        tagsSummary.textContent = (tool.tags && tool.tags.length > 0)
+            ? tool.tags.map(tag => tag.nombre).join(', ')
+            : 'Sin tags';
+
         const categoriesDiv = card.querySelector('.tool-categories');
         if (tool.categories && tool.categories.length > 0) {
             tool.categories.forEach(cat => {
@@ -429,6 +445,61 @@ const CategoryFilter = {
             });
             select.appendChild(option);
         });
+    }
+};
+
+// ============================================
+// Tag Filter Component
+// ============================================
+const TagFilter = {
+    render(tags) {
+        const select = _DOM.$('#tag-filter');
+        if (!select) return;
+
+        _DOM.clearElement(select);
+
+        const defaultOption = _DOM.createElement('option', '', {
+            value: '',
+            textContent: 'Todos los tags'
+        });
+        select.appendChild(defaultOption);
+
+        tags.forEach(tag => {
+            const option = _DOM.createElement('option', '', {
+                value: tag.id,
+                textContent: tag.nombre
+            });
+            select.appendChild(option);
+        });
+    }
+};
+
+// ============================================
+// Year Filter Component
+// ============================================
+const YearFilter = {
+    render() {
+        const select = _DOM.$('#year-filter');
+        if (!select) return;
+
+        _DOM.clearElement(select);
+
+        const defaultOption = _DOM.createElement('option', '', {
+            value: '',
+            textContent: 'Todos los años'
+        });
+        select.appendChild(defaultOption);
+
+        const currentYear = new Date().getFullYear();
+        const minYear = currentYear - 9;
+
+        for (let year = currentYear; year >= minYear; year--) {
+            const option = _DOM.createElement('option', '', {
+                value: String(year),
+                textContent: String(year)
+            });
+            select.appendChild(option);
+        }
     }
 };
 
@@ -874,26 +945,26 @@ const ToolForm = {
             tags: TagManager ? TagManager.getSelectedTags() : []
         };
         
-        // Basic validation
-        if (!toolData.nombre) {
-            Modal.showError('nombre', 'El nombre es requerido');
-            return;
-        }
-        
-        if (toolData.nombre.length > 100) {
-            Modal.showError('nombre', 'El nombre no puede exceder 100 caracteres');
-            return;
-        }
-        
-        if (toolData.url && !this.isValidUrl(toolData.url)) {
-            Modal.showError('url', 'URL inválida');
-            return;
-        }
-        
-        if (toolData.logo_url && !this.isValidUrl(toolData.logo_url)) {
-            Modal.showError('logo_url', 'URL de logo inválida');
-            return;
-        }
+        // Frontend validation with inline error messages
+        const nameInput = _DOM.$('#tool-name');
+        const descInput = _DOM.$('#tool-description');
+        const urlInput  = _DOM.$('#tool-url');
+        const logoInput = _DOM.$('#tool-logo');
+        const catSelect = _DOM.$('#tool-categories');
+
+        let isValid = true;
+
+        if (!_VALIDATION.required(nameInput, 'El nombre')) isValid = false;
+        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) isValid = false;
+
+        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) isValid = false;
+        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) isValid = false;
+
+        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) isValid = false;
+        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) isValid = false;
+        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) isValid = false;
+
+        if (!isValid) return;
         
         try {
             Modal.setLoading(true);
@@ -953,6 +1024,11 @@ const ToolForm = {
         if (form) {
             form.addEventListener('submit', (e) => this.handleSubmit(e));
         }
+
+        // Auto-clear validation errors when user starts typing
+        ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
+            _VALIDATION.setupAutoClear(_DOM.$(sel));
+        });
         
         // Rating input change
         const ratingInput = _DOM.$('#tool-rating');
@@ -1394,6 +1470,8 @@ const ListView = {
             // Load tags
             const tagsData = await _API.getTags();
             _state.tags = tagsData.tags || tagsData || [];
+            TagFilter.render(_state.tags);
+            YearFilter.render();
             
             // Load tools
             await this.loadTools();
@@ -1521,6 +1599,8 @@ const ListView = {
     setupEventListeners() {
         const searchInput = _DOM.$('#search-input');
         const categoryFilter = _DOM.$('#category-filter');
+        const tagFilter = _DOM.$('#tag-filter');
+        const yearFilter = _DOM.$('#year-filter');
         
         if (searchInput) {
             searchInput.addEventListener('input', _Utils.debounce((e) => {
@@ -1533,6 +1613,22 @@ const ListView = {
         if (categoryFilter) {
             categoryFilter.addEventListener('change', (e) => {
                 _state.filters.category = e.target.value;
+                _state.filters.page = 1;
+                this.loadTools();
+            });
+        }
+
+        if (tagFilter) {
+            tagFilter.addEventListener('change', (e) => {
+                _state.filters.tag = e.target.value;
+                _state.filters.page = 1;
+                this.loadTools();
+            });
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener('change', (e) => {
+                _state.filters.anio = e.target.value;
                 _state.filters.page = 1;
                 this.loadTools();
             });
@@ -1580,6 +1676,8 @@ const ListView = {
                 _state.filters.favorito = false;
                 _state.filters.search = '';
                 _state.filters.category = '';
+                _state.filters.tag = '';
+                _state.filters.anio = '';
                 _state.filters.page = 1;
                 
                 // Clear URL params
@@ -1589,8 +1687,12 @@ const ListView = {
                 
                 const searchInput = _DOM.$('#search-input');
                 const categoryFilter = _DOM.$('#category-filter');
+                const tagFilter = _DOM.$('#tag-filter');
+                const yearFilter = _DOM.$('#year-filter');
                 if (searchInput) searchInput.value = '';
                 if (categoryFilter) categoryFilter.value = '';
+                if (tagFilter) tagFilter.value = '';
+                if (yearFilter) yearFilter.value = '';
                 
                 // Reset sorting
                 const sortField = _DOM.$('#sortField');
@@ -1665,8 +1767,12 @@ const App = {
     },
 
     init() {
+        initThemeToggle();
+
         // Setup auth UI in navbar
         this._setupAuthNav();
+
+        const hasVueCatalogue = !!_DOM.$('#catalogue-vue-root');
 
         // Check for favorites filter in URL
         const favoritosParam = _Utils.getQueryParam('favoritos');
@@ -1689,8 +1795,10 @@ const App = {
             } else {
                 window.location.href = 'index.html';
             }
-        } else {
+        } else if (!hasVueCatalogue) {
             ListView.init();
+        } else {
+            // Vue owns the catalogue/home island in E9.
         }
     }
 };

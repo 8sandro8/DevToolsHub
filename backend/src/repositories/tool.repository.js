@@ -10,23 +10,52 @@ class ToolRepository extends BaseRepository {
         super(db, 'tool');
     }
 
-    findWithFilters({ buscar, categoria, favorito, page = 1, limit = 10 }) {
+    findById(id) {
+        const tool = super.findById(id);
+        return tool ? this.hydrateTool(tool) : null;
+    }
+
+    findWithFilters({ buscar, categoria, tag, anio, favorito, page = 1, limit = 10 }) {
         let sql = 'SELECT DISTINCT t.* FROM tool t';
         const params = [];
         const conditions = [];
+        const joins = [];
 
         // Join con categorías si se filtra
         if (categoria) {
-            sql += ' INNER JOIN tool_category tc ON t.id = tc.tool_id INNER JOIN category c ON tc.category_id = c.id';
-            conditions.push('c.nombre = ?');
-            params.push(categoria);
+            joins.push('INNER JOIN tool_category tc_filter ON t.id = tc_filter.tool_id INNER JOIN category c_filter ON tc_filter.category_id = c_filter.id');
+            if (/^\d+$/.test(String(categoria))) {
+                conditions.push('c_filter.id = ?');
+                params.push(parseInt(categoria, 10));
+            } else {
+                conditions.push('c_filter.nombre = ?');
+                params.push(categoria);
+            }
+        }
+
+        // Join con tags si se filtra
+        if (tag) {
+            joins.push('INNER JOIN tool_tag tt_filter ON t.id = tt_filter.tool_id INNER JOIN tag tg_filter ON tt_filter.tag_id = tg_filter.id');
+            if (/^\d+$/.test(String(tag))) {
+                conditions.push('tg_filter.id = ?');
+                params.push(parseInt(tag, 10));
+            } else {
+                conditions.push('tg_filter.nombre = ?');
+                params.push(tag);
+            }
         }
 
         // Búsqueda full-text
         if (buscar) {
-            sql += ' INNER JOIN tool_fts fts ON t.id = fts.rowid';
+            joins.push('INNER JOIN tool_fts fts ON t.id = fts.rowid');
             conditions.push('tool_fts MATCH ?');
             params.push(buscar + '*');
+        }
+
+        // Filtro por año de creación
+        if (anio) {
+            conditions.push("strftime('%Y', t.fecha_creacion) = ?");
+            params.push(String(anio));
         }
 
         // Filtro favoritos
@@ -37,6 +66,10 @@ class ToolRepository extends BaseRepository {
 
         // Siempre excluir archivados
         conditions.push('t.es_archivado = 0');
+
+        if (joins.length > 0) {
+            sql += ' ' + joins.join(' ');
+        }
 
         if (conditions.length > 0) {
             sql += ' WHERE ' + conditions.join(' AND ');
@@ -54,7 +87,7 @@ class ToolRepository extends BaseRepository {
         const tools = this.db.prepare(sql).all(...params);
 
         return {
-            data: tools,
+            data: this.hydrateTools(tools),
             total,
             page,
             limit,
@@ -89,6 +122,20 @@ class ToolRepository extends BaseRepository {
             WHERE tt.tool_id = ?
         `;
         return this.db.prepare(sql).all(toolId);
+    }
+
+    hydrateTool(tool) {
+        if (!tool) return null;
+
+        return {
+            ...tool,
+            categories: this.getCategories(tool.id),
+            tags: this.getTags(tool.id)
+        };
+    }
+
+    hydrateTools(tools) {
+        return tools.map(tool => this.hydrateTool(tool));
     }
 
     setTags(toolId, tagIds) {
