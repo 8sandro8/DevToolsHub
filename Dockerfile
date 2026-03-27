@@ -10,7 +10,7 @@ RUN apt-get update \
 # Install backend dependencies first for better layer caching
 COPY backend/package*.json ./backend/
 WORKDIR /app/backend
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Copy the full repository so backend can serve the frontend and read database/schema files
 WORKDIR /app

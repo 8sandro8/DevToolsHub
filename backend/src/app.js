@@ -3,11 +3,15 @@
  * Core middleware and routing setup
  */
 
-require('dotenv').config();
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load env from root first (Docker Compose/local root runs), then fallback to backend/.env
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
@@ -61,6 +65,11 @@ app.get('/detalle', (req, res) => {
 // Login page
 app.get('/login', (req, res) => {
     res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
+// Browser default favicon request — avoid noisy 404 in the console
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
 });
 
 // Health check

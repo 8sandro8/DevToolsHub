@@ -73,6 +73,7 @@ describe('ToolService', () => {
             expect(result.id).toBe(1);
             expect(result.nombre).toBe('VS Code');
             expect(result).toHaveProperty('categories');
+            expect(result).toHaveProperty('tags');
         });
 
         it('should return null when ID does not exist', () => {

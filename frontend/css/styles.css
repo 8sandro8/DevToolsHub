@@ -96,6 +96,14 @@ body {
     font-size: 1.25rem;
 }
 
+.theme-toggle-btn {
+    white-space: nowrap;
+}
+
+.theme-toggle-btn .bi {
+    font-size: 0.95rem;
+}
+
 .nav-link.active {
     font-weight: 600;
 }
@@ -635,6 +643,11 @@ body {
     
     .search-section {
         background-color: var(--color-bg-card);
+    }
+
+    .footer,
+    footer.bg-white {
+        background-color: var(--color-bg-card) !important;
     }
     
     .form-control,

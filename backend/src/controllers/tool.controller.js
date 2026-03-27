@@ -12,9 +12,12 @@ class ToolController {
 
     getAll = (req, res, next) => {
         try {
+            const anioQuery = req.query.anio || req.query.year;
             const filters = {
                 buscar: req.query.buscar,
                 categoria: req.query.categoria,
+                tag: req.query.tag,
+                anio: anioQuery !== undefined && anioQuery !== '' ? parseInt(anioQuery, 10) : undefined,
                 favorito: req.query.favorito !== undefined ? req.query.favorito === 'true' : undefined,
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 10

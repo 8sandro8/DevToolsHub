@@ -1,16 +1,16 @@
+const express = require('express');
+const router = express.Router();
+const ToolController = require('../controllers/tool.controller');
+const GitHubController = require('../controllers/github.controller');
+const UploadController = require('../controllers/upload.controller');
+const { body } = require('express-validator');
+const validate = require('../middleware/validate');
+const upload = require('../middleware/upload.middleware');
+
 /**
  * Tool Routes
  * REST API endpoints for tools
  */
-
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const ToolController = require('../controllers/tool.controller');
-const GitHubController = require('../controllers/github.controller');
-const { body } = require('express-validator');
-const validate = require('../middleware/validate');
-const upload = require('../middleware/upload.middleware');
 
 // Factory function que crea las rutas con el controller inicializado
 const createToolRoutes = (db) => {
@@ -68,6 +68,12 @@ const createToolRoutes = (db) => {
         validate,
         toolController.update.bind(toolController)
     );
+
+    // POST /api/tools/:id/image - Subir imagen
+    router.post('/:id/image', upload.single('image'), uploadController.uploadImage);
+
+    // DELETE /api/tools/:id/image - Eliminar imagen
+    router.delete('/:id/image', uploadController.deleteImage);
 
     // DELETE /api/tools/:id - Archivar herramienta
     router.delete('/:id', toolController.delete.bind(toolController));

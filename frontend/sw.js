@@ -1,4 +1,4 @@
-const CACHE_NAME = 'devtoolshub-v1';
+const CACHE_NAME = 'devtoolshub-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -6,11 +6,14 @@ const ASSETS_TO_CACHE = [
   '/login.html',
   '/manifest.json',
   '/js/app.js',
+  '/js/theme.js',
+  '/js/pages/catalogue-vue.js',
   '/js/auth.js',
   '/css/styles.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css'
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
+  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
+  'https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js'
 ];
 
 // Instalación — cachear assets estáticos

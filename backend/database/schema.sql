@@ -27,6 +27,15 @@ CREATE TABLE IF NOT EXISTS category (
 );
 
 -- ============================================
+-- TAGS
+-- ============================================
+CREATE TABLE IF NOT EXISTS tag (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL UNIQUE,
+    color TEXT DEFAULT '#6c757d'
+);
+
+-- ============================================
 -- RELACIÓN MUCHOS A MUCHOS
 -- ============================================
 CREATE TABLE IF NOT EXISTS tool_category (
@@ -35,6 +44,14 @@ CREATE TABLE IF NOT EXISTS tool_category (
     PRIMARY KEY (tool_id, category_id),
     FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS tool_tag (
+    tool_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    PRIMARY KEY (tool_id, tag_id),
+    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
 );
 
 -- ============================================

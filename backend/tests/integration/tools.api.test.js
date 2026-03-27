@@ -27,12 +27,14 @@ describe('Tools API Integration', () => {
 
     beforeEach(() => {
         // Clean and reseed before each test
+        db.prepare('DELETE FROM tool_tag').run();
         db.prepare('DELETE FROM tool_category').run();
         db.prepare('DELETE FROM tool').run();
         db.prepare('DELETE FROM category').run();
+        db.prepare('DELETE FROM tag').run();
         // Reset auto-increment counters properly
         try {
-            db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tool_category')");
+            db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tag', 'tool_category')");
         } catch {}
         fullSeed(db);
     });
@@ -70,6 +72,56 @@ describe('Tools API Integration', () => {
             // Assert
             expect(response.status).toBe(200);
             expect(response.body.data.every(t => t.es_favorito === 1)).toBe(true);
+        });
+
+        it('should filter by category id from UI', async () => {
+            // Act
+            const response = await request(app).get('/api/tools?categoria=1');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.body.data.length).toBe(3);
+        });
+
+        it('should filter by tag', async () => {
+            // Act
+            const response = await request(app).get('/api/tools?tag=Backend');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.body.data.length).toBe(2);
+            expect(response.body.data.every(t => Array.isArray(t.tags))).toBe(true);
+        });
+
+        it('should filter by tag id from UI', async () => {
+            // Act
+            const response = await request(app).get('/api/tools?tag=2');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.body.data.length).toBe(2);
+        });
+
+        it('should filter by creation year', async () => {
+            // Act
+            const response = await request(app).get('/api/tools?anio=2026');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.body.data.length).toBe(1);
+            expect(response.body.data[0].nombre).toBe('GitHub');
+        });
+
+        it('should include categories and tags in list response', async () => {
+            // Act
+            const response = await request(app).get('/api/tools');
+
+            // Assert
+            expect(response.status).toBe(200);
+            expect(response.body.data[0]).toHaveProperty('categories');
+            expect(response.body.data[0]).toHaveProperty('tags');
+            expect(Array.isArray(response.body.data[0].categories)).toBe(true);
+            expect(Array.isArray(response.body.data[0].tags)).toBe(true);
         });
     });
 
