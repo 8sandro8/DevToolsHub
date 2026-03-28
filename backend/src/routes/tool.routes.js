@@ -1,24 +1,32 @@
+const express = require('express');
+const router = express.Router();
+const ToolController = require('../controllers/tool.controller');
+const CommentController = require('../controllers/comment.controller');
+const GitHubController = require('../controllers/github.controller');
+const UploadController = require('../controllers/upload.controller');
+const { body } = require('express-validator');
+const validate = require('../middleware/validate');
+const upload = require('../middleware/upload.middleware');
+
 /**
  * Tool Routes
  * REST API endpoints for tools
  */
 
-const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const ToolController = require('../controllers/tool.controller');
-const GitHubController = require('../controllers/github.controller');
-const { body } = require('express-validator');
-const validate = require('../middleware/validate');
-const upload = require('../middleware/upload.middleware');
-
 // Factory function que crea las rutas con el controller inicializado
 const createToolRoutes = (db) => {
     const toolController = new ToolController(db);
+    const commentController = new CommentController(db);
     const uploadController = new UploadController(db);
 
     // GET /api/tools - Listar todas las herramientas
     router.get('/', toolController.getAll.bind(toolController));
+
+    // GET /api/tools/:id - Obtener herramienta por ID
+    router.get('/:id/history', toolController.getHistory.bind(toolController));
+
+    // GET /api/tools/:id/comments - Listar comentarios de una herramienta
+    router.get('/:id/comments', commentController.getAll.bind(commentController));
 
     // GET /api/tools/:id - Obtener herramienta por ID
     router.get('/:id', toolController.getById.bind(toolController));
@@ -69,8 +77,24 @@ const createToolRoutes = (db) => {
         toolController.update.bind(toolController)
     );
 
+    // POST /api/tools/:id/image - Subir imagen
+    router.post('/:id/image', upload.single('image'), uploadController.uploadImage);
+
+    // DELETE /api/tools/:id/image - Eliminar imagen
+    router.delete('/:id/image', uploadController.deleteImage);
+
     // DELETE /api/tools/:id - Archivar herramienta
     router.delete('/:id', toolController.delete.bind(toolController));
+
+    // POST /api/tools/:id/comments - Crear comentario/opinión
+    router.post('/:id/comments',
+        [
+            body('contenido').trim().notEmpty().withMessage('El comentario es obligatorio')
+                .isLength({ max: 500 }).withMessage('El comentario no puede exceder 500 caracteres')
+        ],
+        validate,
+        commentController.create.bind(commentController)
+    );
 
     // PATCH /api/tools/:id/favorito - Toggle favorito
     router.patch('/:id/favorito', toolController.toggleFavorito.bind(toolController));

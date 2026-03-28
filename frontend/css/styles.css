@@ -96,6 +96,14 @@ body {
     font-size: 1.25rem;
 }
 
+.theme-toggle-btn {
+    white-space: nowrap;
+}
+
+.theme-toggle-btn .bi {
+    font-size: 0.95rem;
+}
+
 .nav-link.active {
     font-weight: 600;
 }
@@ -553,6 +561,33 @@ body {
     margin-top: var(--spacing-lg);
 }
 
+/* Comments */
+.comment-form {
+    background: var(--color-bg);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-border-light);
+}
+
+.comment-item {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+}
+
+.comment-author {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.comment-content {
+    margin-top: var(--spacing-sm);
+    white-space: pre-wrap;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
 .meta-item {
     display: flex;
     align-items: center;
@@ -636,6 +671,23 @@ body {
     .search-section {
         background-color: var(--color-bg-card);
     }
+
+    .tool-card {
+        background-color: var(--color-bg-card);
+        color: var(--color-text);
+        --bs-card-bg: var(--color-bg-card);
+        --bs-card-color: var(--color-text);
+        --bs-card-title-color: var(--color-text);
+    }
+
+    .tool-card .text-uppercase.text-muted.small.fw-semibold.mb-1 {
+        background-color: transparent !important;
+    }
+
+    .footer,
+    footer.bg-white {
+        background-color: var(--color-bg-card) !important;
+    }
     
     .form-control,
     .form-select {
@@ -659,6 +711,18 @@ body {
     .btn-close {
         filter: invert(1);
     }
+}
+
+[data-bs-theme="dark"] .tool-card .card-title,
+[data-bs-theme="dark"] .tool-card .tool-name,
+[data-bs-theme="dark"] .detail-title {
+    color: var(--color-text) !important;
+    background-color: transparent !important;
+}
+
+[data-bs-theme="dark"] .tool-card .text-muted,
+[data-bs-theme="dark"] .tool-card .text-body-secondary {
+    color: var(--color-text-secondary) !important;
 }
 
 /* ============================================

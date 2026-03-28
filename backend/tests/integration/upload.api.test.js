@@ -29,12 +29,14 @@ describe('Upload API Integration', () => {
 
     beforeEach(() => {
         // Clean and reseed before each test
+        db.prepare('DELETE FROM tool_tag').run();
         db.prepare('DELETE FROM tool_category').run();
         db.prepare('DELETE FROM tool').run();
         db.prepare('DELETE FROM category').run();
+        db.prepare('DELETE FROM tag').run();
         // Reset auto-increment counters properly
         try {
-            db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tool_category')");
+            db.exec("UPDATE sqlite_sequence SET seq = 0 WHERE name IN ('tool', 'category', 'tag', 'tool_category')");
         } catch {}
         fullSeed(db);
     });

@@ -18,12 +18,23 @@ CREATE TABLE IF NOT EXISTS tool (
     fecha_actualizacion TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tool_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool_id INTEGER NOT NULL,
+    accion TEXT NOT NULL,
+    resumen TEXT NOT NULL,
+    detalles_json TEXT,
+    fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
+);
+
 -- ============================================
 -- CATEGORÍAS
 -- ============================================
 CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL UNIQUE,
+    descripcion TEXT,
     color TEXT DEFAULT '#6b7280'
 );
 
@@ -45,6 +56,18 @@ CREATE TABLE IF NOT EXISTS tool_tag (
     PRIMARY KEY (tool_id, tag_id),
     FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
+);
+
+-- ============================================
+-- COMENTARIOS / OPINIONES
+-- ============================================
+CREATE TABLE IF NOT EXISTS tool_comment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool_id INTEGER NOT NULL,
+    autor TEXT NOT NULL,
+    contenido TEXT NOT NULL,
+    fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
 );
 
 -- ============================================
@@ -84,6 +107,8 @@ CREATE TRIGGER IF NOT EXISTS tool_au AFTER UPDATE ON tool BEGIN
     INSERT INTO tool_fts(rowid, nombre, descripcion) VALUES (new.id, new.nombre, new.descripcion);
 END;
 
+CREATE INDEX IF NOT EXISTS idx_tool_history_tool_id_fecha ON tool_history(tool_id, fecha_creacion DESC);
+
 -- ============================================
 -- USUARIOS (AUTH)
 -- ============================================
@@ -101,4 +126,5 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE INDEX IF NOT EXISTS idx_tool_nombre ON tool(nombre);
 CREATE INDEX IF NOT EXISTS idx_tool_favorito ON tool(es_favorito);
 CREATE INDEX IF NOT EXISTS idx_category_nombre ON category(nombre);
+CREATE INDEX IF NOT EXISTS idx_tool_comment_tool_id_fecha ON tool_comment(tool_id, fecha_creacion DESC);
 CREATE INDEX IF NOT EXISTS idx_user_username ON user(username);

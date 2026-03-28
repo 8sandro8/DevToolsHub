@@ -6,17 +6,17 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { UPLOADS_DIR } = require('../config/paths');
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, '..', '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
 // Configure storage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadsDir);
+        cb(null, UPLOADS_DIR);
     },
     filename: (req, file, cb) => {
         // Generate timestamp + sanitized original name
