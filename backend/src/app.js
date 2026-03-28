@@ -29,6 +29,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Normalize charset casing for JSON requests (supertest/Node 25 compatibility)
+app.use((req, res, next) => {
+    const contentType = req.headers['content-type'];
+    if (contentType && /^application\/json/i.test(contentType)) {
+        req.headers['content-type'] = 'application/json';
+    }
+    next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

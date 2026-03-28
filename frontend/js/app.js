@@ -147,6 +147,21 @@ const _API = {
         return this.request(`/tools/${id}`);
     },
 
+    getToolHistory(id) {
+        return this.request(`/tools/${id}/history`);
+    },
+
+    getToolComments(id) {
+        return this.request(`/tools/${id}/comments`);
+    },
+
+    createToolComment(id, commentData) {
+        return this.request(`/tools/${id}/comments`, {
+            method: 'POST',
+            body: JSON.stringify(commentData)
+        });
+    },
+
     getCategories() {
         return this.request('/categories');
     },
@@ -1302,6 +1317,46 @@ const DetailView = {
             metaSection.appendChild(updatedMeta);
             
             card.appendChild(metaSection);
+
+            const historySection = _DOM.createElement('div', 'detail-section', {
+                id: 'tool-history-section'
+            });
+
+            const historyTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Historial de cambios'
+            });
+            historySection.appendChild(historyTitle);
+
+            const historySkeleton = _DOM.createElement('div', 'tool-history-skeleton');
+            historySkeleton.innerHTML = `
+                <div class="placeholder-glow">
+                    <span class="placeholder col-8 mb-2"></span>
+                    <span class="placeholder col-6"></span>
+                </div>
+            `;
+            historySection.appendChild(historySkeleton);
+
+            card.appendChild(historySection);
+
+            const commentsSection = _DOM.createElement('div', 'detail-section', {
+                id: 'tool-comments-section'
+            });
+
+            const commentsTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Comentarios / opiniones'
+            });
+            commentsSection.appendChild(commentsTitle);
+
+            const commentsSkeleton = _DOM.createElement('div', 'tool-comments-skeleton');
+            commentsSkeleton.innerHTML = `
+                <div class="placeholder-glow mb-3">
+                    <span class="placeholder col-8 mb-2"></span>
+                    <span class="placeholder col-10"></span>
+                </div>
+            `;
+            commentsSection.appendChild(commentsSkeleton);
+
+            card.appendChild(commentsSection);
             
             // GitHub Stats section - will be loaded separately
             const githubSection = _DOM.createElement('div', 'detail-section');
@@ -1344,6 +1399,15 @@ const DetailView = {
             
             // Load GitHub stats after rendering
             this.loadGitHubStats(toolId);
+
+            // Load history after rendering
+            this.loadToolHistory(toolId);
+
+            // Load comments after rendering
+            await this.loadToolComments(toolId);
+
+            // Setup comments form
+            this.setupCommentForm(toolId);
             
             // Setup read more button event
             this.setupReadMoreButton();
@@ -1448,6 +1512,153 @@ const DetailView = {
                     <div class="text-center text-muted py-2">
                         <i class="bi bi-info-circle me-1"></i>
                         <span class="small">Stats no disponibles</span>
+                    </div>
+                `;
+            }
+        }
+    },
+
+    async loadToolHistory(toolId) {
+        const section = _DOM.$('#tool-history-section');
+        if (!section) return;
+
+        try {
+            const data = await _API.getToolHistory(toolId);
+            const history = data.history || data.data || [];
+
+            const skeleton = section.querySelector('.tool-history-skeleton');
+            if (skeleton) skeleton.remove();
+
+            if (!history.length) {
+                const empty = _DOM.createElement('p', 'text-muted mb-0', {
+                    textContent: 'Todavía no hay cambios registrados.'
+                });
+                section.appendChild(empty);
+                return;
+            }
+
+            const list = _DOM.createElement('div', 'list-group list-group-flush');
+            history.forEach((entry) => {
+                const item = _DOM.createElement('div', 'list-group-item px-0');
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="fw-semibold">${_Utils.escapeHtml(entry.resumen || entry.accion || 'Cambio')}</div>
+                            <div class="small text-muted">${_Utils.escapeHtml(entry.accion || 'update')}</div>
+                        </div>
+                        <span class="small text-muted text-nowrap">${_Utils.formatDate(entry.fecha_creacion)}</span>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            section.appendChild(list);
+        } catch (error) {
+            const skeleton = section.querySelector('.tool-history-skeleton');
+            if (skeleton) {
+                skeleton.innerHTML = `
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Historial no disponible
+                    </div>
+                `;
+            }
+        }
+    },
+
+    setupCommentForm(toolId) {
+        const form = _DOM.$('#tool-comment-form');
+        if (!form) return;
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const textarea = form.querySelector('#comment-content');
+            const submitBtn = form.querySelector('[type="submit"]');
+            const contenido = textarea ? textarea.value.trim() : '';
+
+            if (!contenido) {
+                Toast.error('Escribe un comentario antes de publicar');
+                return;
+            }
+
+            try {
+                if (submitBtn) submitBtn.disabled = true;
+                await _API.createToolComment(toolId, { contenido });
+                Toast.success('Comentario publicado');
+                await this.render(toolId);
+            } catch (error) {
+                Toast.error(error.message || 'No se pudo publicar el comentario');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    },
+
+    async loadToolComments(toolId) {
+        const section = _DOM.$('#tool-comments-section');
+        if (!section) return;
+
+        try {
+            const data = await _API.getToolComments(toolId);
+            const comments = data.comments || data.data || [];
+
+            const skeleton = section.querySelector('.tool-comments-skeleton');
+            if (skeleton) skeleton.remove();
+
+            const authNote = _Auth.isAuthenticated()
+                ? ''
+                : `
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Inicia sesión para publicar un comentario.
+                    </div>
+                `;
+
+            const formHtml = _Auth.isAuthenticated()
+                ? `
+                    <form id="tool-comment-form" class="comment-form mb-4">
+                        <div class="mb-3">
+                            <label for="comment-content" class="form-label">Tu comentario</label>
+                            <textarea id="comment-content" class="form-control" rows="4" maxlength="500" placeholder="Comparte tu opinión sobre esta herramienta..."></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <small class="text-muted">Máximo 500 caracteres</small>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i> Publicar
+                            </button>
+                        </div>
+                    </form>
+                `
+                : '';
+
+            const commentsMarkup = comments.length
+                ? comments.map((comment) => `
+                    <article class="comment-item">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <div class="comment-author">${_Utils.escapeHtml(comment.autor || 'Usuario')}</div>
+                                <div class="comment-meta text-muted small">${_Utils.formatRelativeTime(comment.fecha_creacion)}</div>
+                            </div>
+                            <span class="badge text-bg-light">Opinión</span>
+                        </div>
+                        <p class="comment-content mb-0">${_Utils.escapeHtml(comment.contenido || '')}</p>
+                    </article>
+                `).join('')
+                : '<p class="text-muted mb-0">Todavía no hay comentarios para esta herramienta.</p>';
+
+            section.innerHTML = `
+                ${authNote}
+                ${formHtml}
+                <div class="comment-list d-grid gap-3">${commentsMarkup}</div>
+            `;
+        } catch (error) {
+            const skeleton = section.querySelector('.tool-comments-skeleton');
+            if (skeleton) {
+                skeleton.innerHTML = `
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Comentarios no disponibles
                     </div>
                 `;
             }

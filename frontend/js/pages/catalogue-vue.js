@@ -312,13 +312,15 @@ if (root) {
             <div class="card h-100 border-0 shadow-sm tool-card">
               <div class="card-header bg-transparent border-0 pt-3">
                 <div class="d-flex justify-content-between align-items-start gap-3">
-                  <img class="tool-logo rounded" :src="tool.image_url || tool.logo_url || DEFAULT_LOGO" :alt="tool.nombre + ' logo'" width="48" height="48" loading="lazy">
+                  <img class="tool-logo rounded" :src="tool.external_thumbnail || tool.image_url || tool.logo_url || DEFAULT_LOGO" :alt="tool.nombre + ' logo'" width="48" height="48" loading="lazy">
                   <span class="tool-rating text-warning" :aria-label="'Valoración ' + (tool.rating || 0) + ' de 5'">{{ formatRating(tool.rating || 0) }}</span>
                 </div>
               </div>
               <div class="card-body pt-2">
-                <div class="text-uppercase text-muted small fw-semibold mb-1">Nombre</div>
                 <h3 class="card-title h6 tool-name mb-2">{{ tool.nombre }}</h3>
+                <div v-if="tool.external_source" class="mb-2">
+                  <span class="badge text-bg-secondary">Fuente: {{ tool.external_source }}</span>
+                </div>
                 <ul class="list-unstyled small mb-2">
                   <li class="mb-1">
                     <span class="fw-semibold">Categoría:</span>

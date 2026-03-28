@@ -10,7 +10,7 @@ class ToolController {
         this.service = new ToolService(db);
     }
 
-    getAll = (req, res, next) => {
+    getAll = async (req, res, next) => {
         try {
             const anioQuery = req.query.anio || req.query.year;
             const filters = {
@@ -23,7 +23,7 @@ class ToolController {
                 limit: parseInt(req.query.limit) || 10
             };
 
-            const result = this.service.getAll(filters);
+            const result = await this.service.getAll(filters);
             res.json(result);
         } catch (error) {
             next(error);
@@ -37,6 +37,19 @@ class ToolController {
                 return res.status(404).json({ error: 'Herramienta no encontrada' });
             }
             res.json({ tool });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    getHistory = (req, res, next) => {
+        try {
+            const history = this.service.getHistory(req.params.id);
+            if (!history) {
+                return res.status(404).json({ error: 'Herramienta no encontrada' });
+            }
+
+            res.json({ history });
         } catch (error) {
             next(error);
         }

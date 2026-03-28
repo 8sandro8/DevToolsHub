@@ -1,31 +1,68 @@
 {
   "info": {
     "name": "DevToolsHub API",
-    "description": "Colección de requests para la API de DevToolsHub\n\nURL Base: {{baseUrl}}\n\nEsta colección incluye ejemplos para todos los endpoints del backend.",
+    "description": "Colección completa de endpoints para la API de DevToolsHub\n\nURL Base: {{base_url}}\n\nAutenticación: Bearer token en header Authorization",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "baseUrl",
-      "value": "http://localhost:4001/api",
+      "key": "base_url",
+      "value": "http://localhost:4001",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
       "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Health",
+      "name": "Auth",
       "item": [
         {
-          "name": "Health Check",
+          "name": "Register User",
           "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/health",
-              "host": ["{{baseUrl}}", "health"]
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"sandrodev\",\n  \"password\": \"SecurePass123!\"\n}"
             },
-            "description": "Verifica el estado de la API"
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
           },
-          "response": []
+          "description": "Registra un nuevo usuario en el sistema"
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"sandrodev\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "description": "Inicia sesión y obtiene token JWT"
         }
       ]
     },
@@ -37,125 +74,186 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/tools?buscar=&categoria=&favorito=&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools"],
-              "query": [
-                {
-                  "key": "buscar",
-                  "value": "",
-                  "description": "Texto a buscar en nombre o descripción"
-                },
-                {
-                  "key": "categoria",
-                  "value": "",
-                  "description": "ID de categoría para filtrar"
-                },
-                {
-                  "key": "favorito",
-                  "value": "",
-                  "description": "Filtrar por favoritos (true/false)"
-                },
-                {
-                  "key": "page",
-                  "value": "1",
-                  "description": "Número de página"
-                },
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Resultados por página"
-                }
-              ]
-            },
-            "description": "Obtiene todas las herramientas con filtros opcionales"
+              "raw": "{{base_url}}/api/tools",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools"]
+            }
           },
-          "response": []
+          "description": "Lista todas las herramientas (público)"
         },
         {
           "name": "Get Tool by ID",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
-            "description": "Obtiene una herramienta específica por su ID"
+              "raw": "{{base_url}}/api/tools/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id"]
+            }
           },
-          "response": []
+          "description": "Obtiene detalle de una herramienta (público)"
         },
         {
           "name": "Create Tool",
           "request": {
             "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/tools",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools"]
-            },
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"VS Code\",\n  \"descripcion\": \"Editor de código fuente gratuito y multiplataforma desarrollado por Microsoft\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 5,\n  \"es_favorito\": true,\n  \"categories\": [1, 2]\n}"
+              "raw": "{\n  \"name\": \"Visual Studio Code\",\n  \"description\": \"Editor de código fuente gratuito y multiplataforma desarrollado por Microsoft\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"category_id\": 1\n}"
             },
-            "description": "Crea una nueva herramienta"
+            "url": {
+              "raw": "{{base_url}}/api/tools",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools"]
+            }
           },
-          "response": []
+          "description": "Crea una nueva herramienta (requiere JWT)"
         },
         {
           "name": "Update Tool",
           "request": {
             "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"VS Code Updated\",\n  \"descripcion\": \"Descripción actualizada del editor\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 4,\n  \"es_favorito\": false,\n  \"categories\": [1]\n}"
+              "raw": "{\n  \"name\": \"VS Code Updated\",\n  \"description\": \"Editor de código actualizado con más funcionalidades\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"category_id\": 2\n}"
             },
-            "description": "Actualiza una herramienta existente"
+            "url": {
+              "raw": "{{base_url}}/api/tools/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id"]
+            }
           },
-          "response": []
+          "description": "Actualiza una herramienta existente (requiere JWT)"
         },
         {
           "name": "Delete Tool",
           "request": {
             "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
-            "description": "Archiva (soft delete) una herramienta"
+              "raw": "{{base_url}}/api/tools/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id"]
+            }
           },
-          "response": []
+          "description": "Elimina una herramienta (requiere JWT)"
         },
         {
           "name": "Toggle Favorite",
           "request": {
             "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/tools/:id/favorito",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id", "favorito"]
-            },
-            "description": "Alterna el estado de favorito de una herramienta"
+              "raw": "{{base_url}}/api/tools/:id/favorite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id", "favorite"]
+            }
           },
-          "response": []
+          "description": "Alterna el estado de favorito (requiere JWT)"
+        },
+        {
+          "name": "Upload Tool Image",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tools/:id/image",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id", "image"]
+            }
+          },
+          "description": "Sube una imagen para la herramienta (requiere JWT, multipart/form-data)"
+        },
+        {
+          "name": "Delete Tool Image",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tools/:id/image",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id", "image"]
+            }
+          },
+          "description": "Elimina la imagen de una herramienta (requiere JWT)"
+        },
+        {
+          "name": "Get GitHub Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/tools/:id/github-stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id", "github-stats"]
+            }
+          },
+          "description": "Obtiene estadísticas del repositorio GitHub (público)"
+        },
+        {
+          "name": "Assign Tags to Tool",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tag_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tools/:id/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tools", ":id", "tags"]
+            }
+          },
+          "description": "Asigna tags a una herramienta (requiere JWT)"
         }
       ]
     },
@@ -167,85 +265,193 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
-            },
-            "description": "Obtiene todas las categorías"
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            }
           },
-          "response": []
+          "description": "Lista todas las categorías (público)"
         },
         {
           "name": "Get Category by ID",
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
-            "description": "Obtiene una categoría específica por su ID"
+              "raw": "{{base_url}}/api/categories/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", ":id"]
+            }
           },
-          "response": []
+          "description": "Obtiene detalle de una categoría (público)"
         },
         {
           "name": "Create Category",
           "request": {
             "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
-            },
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Desarrollo Web\",\n  \"color\": \"#3b82f6\"\n}"
+              "raw": "{\n  \"name\": \"Desarrollo Web\",\n  \"description\": \"Herramientas para desarrollo web y frontend\"\n}"
             },
-            "description": "Crea una nueva categoría"
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            }
           },
-          "response": []
+          "description": "Crea una nueva categoría (requiere JWT)"
         },
         {
           "name": "Update Category",
           "request": {
             "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Desarrollo Web Actualizado\",\n  \"color\": \"#2563eb\"\n}"
+              "raw": "{\n  \"name\": \"Desarrollo Web Moderno\",\n  \"description\": \"Herramientas actualizadas para desarrollo web\"\n}"
             },
-            "description": "Actualiza una categoría existente"
+            "url": {
+              "raw": "{{base_url}}/api/categories/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", ":id"]
+            }
           },
-          "response": []
+          "description": "Actualiza una categoría existente (requiere JWT)"
         },
         {
           "name": "Delete Category",
           "request": {
             "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
-            "description": "Elimina una categoría"
+              "raw": "{{base_url}}/api/categories/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", ":id"]
+            }
           },
-          "response": []
+          "description": "Elimina una categoría (requiere JWT)"
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags"]
+            }
+          },
+          "description": "Lista todos los tags (público)"
+        },
+        {
+          "name": "Get Tag by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/tags/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags", ":id"]
+            }
+          },
+          "description": "Obtiene detalle de un tag (público)"
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"open-source\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tags",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags"]
+            }
+          },
+          "description": "Crea un nuevo tag (requiere JWT)"
+        },
+        {
+          "name": "Update Tag",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"open-source-updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tags/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags", ":id"]
+            }
+          },
+          "description": "Actualiza un tag existente (requiere JWT)"
+        },
+        {
+          "name": "Delete Tag",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/tags/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tags", ":id"]
+            }
+          },
+          "description": "Elimina un tag (requiere JWT)"
         }
       ]
     }

@@ -10,6 +10,44 @@ class ToolRepository extends BaseRepository {
         super(db, 'tool');
     }
 
+    recordHistory(toolId, accion, resumen, detalles = null) {
+        this.db.prepare(`
+            INSERT INTO tool_history (tool_id, accion, resumen, detalles_json)
+            VALUES (?, ?, ?, ?)
+        `).run(toolId, accion, resumen, detalles ? JSON.stringify(detalles) : null);
+    }
+
+    buildHistorySummary(action, data, before, after) {
+        if (action === 'create') return 'Herramienta creada';
+        if (action === 'delete') return 'Herramienta archivada';
+
+        const keys = Object.keys(data || {});
+        if (keys.length === 1 && keys[0] === 'es_favorito') {
+            return after.es_favorito ? 'Marcada como favorita' : 'Quitada de favoritos';
+        }
+
+        if (keys.length === 1 && keys[0] === 'image_url') {
+            return after.image_url ? 'Imagen actualizada' : 'Imagen eliminada';
+        }
+
+        return `Herramienta actualizada (${keys.join(', ') || 'sin cambios'})`;
+    }
+
+    buildHistoryDetails(before, after, data) {
+        const keys = Object.keys(data || {});
+        const details = {
+            before: {},
+            after: {}
+        };
+
+        keys.forEach((key) => {
+            details.before[key] = before[key];
+            details.after[key] = after[key];
+        });
+
+        return details;
+    }
+
     findById(id) {
         const tool = super.findById(id);
         return tool ? this.hydrateTool(tool) : null;
@@ -138,6 +176,20 @@ class ToolRepository extends BaseRepository {
         return tools.map(tool => this.hydrateTool(tool));
     }
 
+    getHistory(toolId) {
+        const sql = `
+            SELECT id, tool_id, accion, resumen, detalles_json, fecha_creacion
+            FROM tool_history
+            WHERE tool_id = ?
+            ORDER BY fecha_creacion DESC, id DESC
+        `;
+
+        return this.db.prepare(sql).all(toolId).map((entry) => ({
+            ...entry,
+            detalles_json: entry.detalles_json ? JSON.parse(entry.detalles_json) : null
+        }));
+    }
+
     setTags(toolId, tagIds) {
         // Eliminar tags actuales
         this.db.prepare('DELETE FROM tool_tag WHERE tool_id = ?').run(toolId);
@@ -150,18 +202,63 @@ class ToolRepository extends BaseRepository {
     }
 
     updateImageUrl(id, imageUrl) {
+        const before = this.findById(id);
+        if (!before) {
+            return null;
+        }
+
         const stmt = this.db.prepare(`
             UPDATE tool 
             SET image_url = ?, fecha_actualizacion = CURRENT_TIMESTAMP 
             WHERE id = ?
         `);
         const result = stmt.run(imageUrl, id);
-        
+
         if (result.changes === 0) {
             return null;
         }
-        
-        return this.findById(id);
+
+        const updated = this.findById(id);
+        if (updated) {
+            this.recordHistory(id, 'update', this.buildHistorySummary('update', { image_url: imageUrl }, before, updated), this.buildHistoryDetails(before, updated, { image_url: imageUrl }));
+        }
+
+        return updated;
+    }
+
+    create(data) {
+        const tool = super.create(data);
+        if (tool) {
+            this.recordHistory(tool.id, 'create', this.buildHistorySummary('create', data, null, tool), { created: tool });
+        }
+
+        return tool;
+    }
+
+    update(id, data) {
+        const before = this.findById(id);
+        if (!before) {
+            return null;
+        }
+
+        const updated = super.update(id, data);
+        if (!updated) {
+            return null;
+        }
+
+        this.recordHistory(id, 'update', this.buildHistorySummary('update', data, before, updated), this.buildHistoryDetails(before, updated, data));
+        return updated;
+    }
+
+    delete(id) {
+        const before = this.findById(id);
+        const result = super.delete(id);
+
+        if (before) {
+            this.recordHistory(id, 'delete', this.buildHistorySummary('delete', {}, before, result || before), { deleted: before });
+        }
+
+        return result;
     }
 }
 
