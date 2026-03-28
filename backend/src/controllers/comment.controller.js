@@ -38,6 +38,38 @@ class CommentController {
             next(error);
         }
     }
+
+    update = (req, res, next) => {
+        try {
+            const comment = this.service.update(req.params.id, req.params.commentId, req.body, req.user);
+            if (!comment) {
+                return res.status(404).json({ error: 'Comentario no encontrado' });
+            }
+
+            res.json({ comment });
+        } catch (error) {
+            if (error.statusCode) {
+                return res.status(error.statusCode).json({ error: error.message });
+            }
+            next(error);
+        }
+    }
+
+    delete = (req, res, next) => {
+        try {
+            const deleted = this.service.delete(req.params.id, req.params.commentId, req.user);
+            if (!deleted) {
+                return res.status(404).json({ error: 'Comentario no encontrado' });
+            }
+
+            res.json({ message: 'Comentario eliminado' });
+        } catch (error) {
+            if (error.statusCode) {
+                return res.status(error.statusCode).json({ error: error.message });
+            }
+            next(error);
+        }
+    }
 }
 
 module.exports = CommentController;

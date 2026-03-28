@@ -162,6 +162,19 @@ const _API = {
         });
     },
 
+    updateToolComment(toolId, commentId, commentData) {
+        return this.request(`/tools/${toolId}/comments/${commentId}`, {
+            method: 'PUT',
+            body: JSON.stringify(commentData)
+        });
+    },
+
+    deleteToolComment(toolId, commentId) {
+        return this.request(`/tools/${toolId}/comments/${commentId}`, {
+            method: 'DELETE'
+        });
+    },
+
     getCategories() {
         return this.request('/categories');
     },
@@ -303,8 +316,10 @@ const _Utils = {
 
     formatRelativeTime(dateString) {
         if (!dateString) return '';
-        
-        const date = new Date(dateString);
+        const isSqliteTimestamp = typeof dateString === 'string'
+            && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateString);
+        const date = new Date(isSqliteTimestamp ? `${dateString.replace(' ', 'T')}Z` : dateString);
+        if (Number.isNaN(date.getTime())) return '';
         const now = new Date();
         const diffMs = now - date;
         const diffSeconds = Math.floor(diffMs / 1000);
@@ -768,6 +783,8 @@ const Modal = {
         const ratingDisplay = _DOM.$('#rating-display');
         
         if (!form) return;
+
+        const hasTagManager = typeof TagManager !== 'undefined' && TagManager;
         
         // Reset form validation
         form.classList.remove('was-validated');
@@ -777,10 +794,13 @@ const Modal = {
         form.reset();
         this.clearErrors();
         
-        // Clear category selection
+        // Preserve a valid category selection for add mode
         const categorySelect = _DOM.$('#tool-categories');
         if (categorySelect) {
-            Array.from(categorySelect.options).forEach(opt => opt.selected = false);
+            const firstValidOption = Array.from(categorySelect.options).find(opt => opt.value);
+            if (firstValidOption) {
+                firstValidOption.selected = true;
+            }
         }
         
         // Reset rating display
@@ -816,10 +836,10 @@ const Modal = {
             }
             
             // Set selected tags
-            if (TagManager && editingTool.tags && editingTool.tags.length > 0) {
+            if (hasTagManager && editingTool.tags && editingTool.tags.length > 0) {
                 const tagIds = editingTool.tags.map(t => t.id);
                 ToolForm.renderTagSelect(tagIds);
-            } else if (TagManager) {
+            } else if (hasTagManager) {
                 ToolForm.renderTagSelect([]);
             }
 
@@ -837,7 +857,7 @@ const Modal = {
             }
             
             // Render tag select (empty for new tool)
-            if (TagManager) {
+            if (hasTagManager) {
                 TagManager.renderTagSelect([]);
             }
         }
@@ -935,6 +955,11 @@ const Modal = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.DevToolsHub = window.DevToolsHub || {};
+    window.DevToolsHub.openToolModal = () => Modal.open();
+}
+
 // ============================================
 // Form Handler
 // ============================================
@@ -957,7 +982,7 @@ const ToolForm = {
             logo_url: formData.get('logo_url')?.trim() || null,
             rating: parseInt(formData.get('rating'), 10) || 3,
             categories: CategorySelect.getSelected(),
-            tags: TagManager ? TagManager.getSelectedTags() : []
+            tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
         };
         
         // Frontend validation with inline error messages
@@ -1060,12 +1085,6 @@ const ToolForm = {
             Modal.editingToolId = null;
         });
         
-        // Add tool button
-        const addBtn = _DOM.$('#btn-add-tool');
-        if (addBtn) {
-            addBtn.addEventListener('click', () => Modal.open());
-        }
-
         // Image file input handler
         const imageInput = _DOM.$('#tool-image');
         if (imageInput) {
@@ -1595,6 +1614,61 @@ const DetailView = {
         });
     },
 
+    setupCommentActions(toolId) {
+        const section = _DOM.$('#tool-comments-section');
+        if (!section) return;
+
+        const currentUsername = _Auth.getUser()?.username;
+        const editButtons = section.querySelectorAll('[data-comment-action="edit"]');
+        const deleteButtons = section.querySelectorAll('[data-comment-action="delete"]');
+
+        editButtons.forEach((button) => {
+            button.addEventListener('click', async () => {
+                const commentId = button.dataset.commentId;
+                const currentContent = button.dataset.commentContent || '';
+                const nextContent = window.prompt('Edita tu comentario', currentContent);
+
+                if (nextContent === null) return;
+
+                const contenido = nextContent.trim();
+                if (!contenido) {
+                    Toast.error('El comentario no puede estar vacío');
+                    return;
+                }
+
+                try {
+                    button.disabled = true;
+                    await _API.updateToolComment(toolId, commentId, { contenido });
+                    Toast.success('Comentario actualizado');
+                    await this.render(toolId);
+                } catch (error) {
+                    Toast.error(error.message || 'No se pudo actualizar el comentario');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+
+        deleteButtons.forEach((button) => {
+            button.addEventListener('click', async () => {
+                const commentId = button.dataset.commentId;
+                const confirmed = window.confirm('¿Eliminar tu comentario?');
+                if (!confirmed) return;
+
+                try {
+                    button.disabled = true;
+                    await _API.deleteToolComment(toolId, commentId);
+                    Toast.success('Comentario eliminado');
+                    await this.render(toolId);
+                } catch (error) {
+                    Toast.error(error.message || 'No se pudo eliminar el comentario');
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    },
+
     async loadToolComments(toolId) {
         const section = _DOM.$('#tool-comments-section');
         if (!section) return;
@@ -1602,6 +1676,7 @@ const DetailView = {
         try {
             const data = await _API.getToolComments(toolId);
             const comments = data.comments || data.data || [];
+            const currentUsername = _Auth.getUser()?.username || '';
 
             const skeleton = section.querySelector('.tool-comments-skeleton');
             if (skeleton) skeleton.remove();
@@ -1633,18 +1708,45 @@ const DetailView = {
                 : '';
 
             const commentsMarkup = comments.length
-                ? comments.map((comment) => `
+                ? comments.map((comment) => {
+                    const isOwner = currentUsername && comment.autor === currentUsername;
+                    const actionsMarkup = isOwner
+                        ? `
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del comentario">
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-comment-action="edit"
+                                    data-comment-id="${comment.id}"
+                                    data-comment-content="${_Utils.escapeHtml(comment.contenido || '')}"
+                                >
+                                    <i class="bi bi-pencil me-1"></i> Editar
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger"
+                                    data-comment-action="delete"
+                                    data-comment-id="${comment.id}"
+                                >
+                                    <i class="bi bi-trash me-1"></i> Eliminar
+                                </button>
+                            </div>
+                        `
+                        : '<span class="badge text-bg-light">Opinión</span>';
+
+                    return `
                     <article class="comment-item">
                         <div class="d-flex justify-content-between align-items-start gap-3">
                             <div>
                                 <div class="comment-author">${_Utils.escapeHtml(comment.autor || 'Usuario')}</div>
                                 <div class="comment-meta text-muted small">${_Utils.formatRelativeTime(comment.fecha_creacion)}</div>
                             </div>
-                            <span class="badge text-bg-light">Opinión</span>
+                            ${actionsMarkup}
                         </div>
                         <p class="comment-content mb-0">${_Utils.escapeHtml(comment.contenido || '')}</p>
                     </article>
-                `).join('')
+                    `;
+                }).join('')
                 : '<p class="text-muted mb-0">Todavía no hay comentarios para esta herramienta.</p>';
 
             section.innerHTML = `
@@ -1652,6 +1754,10 @@ const DetailView = {
                 ${formHtml}
                 <div class="comment-list d-grid gap-3">${commentsMarkup}</div>
             `;
+
+            if (currentUsername) {
+                this.setupCommentActions(toolId);
+            }
         } catch (error) {
             const skeleton = section.querySelector('.tool-comments-skeleton');
             if (skeleton) {
@@ -2009,6 +2115,8 @@ const App = {
         } else if (!hasVueCatalogue) {
             ListView.init();
         } else {
+            Modal.init();
+            ToolForm.setupEventListeners();
             // Vue owns the catalogue/home island in E9.
         }
     }
