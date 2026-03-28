@@ -27,6 +27,7 @@ describe('Tools API Integration', () => {
 
     beforeEach(() => {
         // Clean and reseed before each test
+        db.prepare('DELETE FROM tool_history').run();
         db.prepare('DELETE FROM tool_tag').run();
         db.prepare('DELETE FROM tool_category').run();
         db.prepare('DELETE FROM tool').run();
@@ -153,6 +154,50 @@ describe('Tools API Integration', () => {
             expect(response.status).toBe(200);
             expect(response.body.tool).toHaveProperty('categories');
             expect(Array.isArray(response.body.tool.categories)).toBe(true);
+        });
+    });
+
+    describe('GET /api/tools/:id/history', () => {
+        it('should track create, update and delete changes', async () => {
+            const created = await request(app)
+                .post('/api/tools')
+                .set('Authorization', `Bearer ${authToken}`)
+                .send({
+                    nombre: 'History Tool',
+                    descripcion: 'Tool for history testing',
+                    url: 'https://history.example.com'
+                });
+
+            expect(created.status).toBe(201);
+            const toolId = created.body.tool.id;
+
+            const updated = await request(app)
+                .put(`/api/tools/${toolId}`)
+                .set('Authorization', `Bearer ${authToken}`)
+                .send({ nombre: 'History Tool Updated' });
+
+            expect(updated.status).toBe(200);
+
+            const deleted = await request(app)
+                .delete(`/api/tools/${toolId}`)
+                .set('Authorization', `Bearer ${authToken}`);
+
+            expect(deleted.status).toBe(200);
+
+            const historyResponse = await request(app).get(`/api/tools/${toolId}/history`);
+
+            expect(historyResponse.status).toBe(200);
+            expect(Array.isArray(historyResponse.body.history)).toBe(true);
+            expect(historyResponse.body.history.length).toBe(3);
+            expect(historyResponse.body.history[0].resumen).toMatch(/archivada/i);
+            expect(historyResponse.body.history[1].resumen).toMatch(/actualizada/i);
+            expect(historyResponse.body.history[2].resumen).toMatch(/creada/i);
+        });
+
+        it('should return 404 for non-existent tool history', async () => {
+            const response = await request(app).get('/api/tools/999/history');
+
+            expect(response.status).toBe(404);
         });
     });
 

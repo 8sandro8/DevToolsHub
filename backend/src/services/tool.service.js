@@ -4,14 +4,18 @@
  */
 
 const ToolRepository = require('../repositories/tool.repository');
+const ExternalCatalogService = require('./external-catalog.service');
 
 class ToolService {
     constructor(db) {
         this.repository = new ToolRepository(db);
+        this.externalCatalog = new ExternalCatalogService();
     }
 
-    getAll(filters) {
-        return this.repository.findWithFilters(filters);
+    async getAll(filters) {
+        const result = this.repository.findWithFilters(filters);
+        result.data = await this.externalCatalog.enrichTools(result.data);
+        return result;
     }
 
     getById(id) {
@@ -76,6 +80,13 @@ class ToolService {
 
     delete(id) {
         return this.repository.delete(id);
+    }
+
+    getHistory(id) {
+        const tool = this.repository.findById(id);
+        if (!tool) return null;
+
+        return this.repository.getHistory(id);
     }
 
     toggleFavorito(id) {
