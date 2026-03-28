@@ -4,7 +4,7 @@
 -- ============================================
 -- CATEGORÍAS INICIALES
 -- ============================================
-INSERT INTO category (nombre, color) VALUES
+INSERT OR IGNORE INTO category (nombre, color) VALUES
     ('API Testing', '#10b981'),
     ('Code Editors', '#3b82f6'),
     ('Version Control', '#8b5cf6'),
@@ -17,7 +17,7 @@ INSERT INTO category (nombre, color) VALUES
 -- ============================================
 -- TAGS INICIALES
 -- ============================================
-INSERT INTO tag (nombre, color) VALUES
+INSERT OR IGNORE INTO tag (nombre, color) VALUES
     ('Frontend', '#0d6efd'),
     ('Backend', '#198754'),
     ('Testing', '#6f42c1'),

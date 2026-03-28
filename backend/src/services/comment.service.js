@@ -19,6 +19,13 @@ class CommentService {
         return this.commentRepository.findByToolId(toolId);
     }
 
+    getCommentById(toolId, commentId) {
+        const tool = this.toolRepository.findById(toolId);
+        if (!tool) return null;
+
+        return this.commentRepository.findByIdAndToolId(commentId, toolId);
+    }
+
     create(toolId, data, user) {
         const tool = this.toolRepository.findById(toolId);
         if (!tool) return null;
@@ -32,6 +39,47 @@ class CommentService {
 
         const autor = user?.username || 'Usuario';
         return this.commentRepository.create(toolId, autor, contenido);
+    }
+
+    update(toolId, commentId, data, user) {
+        const tool = this.toolRepository.findById(toolId);
+        if (!tool) return null;
+
+        const comment = this.commentRepository.findByIdAndToolId(commentId, toolId);
+        if (!comment) return null;
+
+        const username = user?.username;
+        if (!username || comment.autor !== username) {
+            const error = new Error('No puedes editar este comentario');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        const contenido = typeof data.contenido === 'string' ? data.contenido.trim() : '';
+        if (!contenido) {
+            const error = new Error('El comentario es obligatorio');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        return this.commentRepository.updateByIdAndToolId(commentId, toolId, contenido);
+    }
+
+    delete(toolId, commentId, user) {
+        const tool = this.toolRepository.findById(toolId);
+        if (!tool) return null;
+
+        const comment = this.commentRepository.findByIdAndToolId(commentId, toolId);
+        if (!comment) return null;
+
+        const username = user?.username;
+        if (!username || comment.autor !== username) {
+            const error = new Error('No puedes eliminar este comentario');
+            error.statusCode = 403;
+            throw error;
+        }
+
+        return this.commentRepository.deleteByIdAndToolId(commentId, toolId);
     }
 }
 

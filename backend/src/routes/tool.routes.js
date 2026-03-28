@@ -96,6 +96,19 @@ const createToolRoutes = (db) => {
         commentController.create.bind(commentController)
     );
 
+    // PUT /api/tools/:id/comments/:commentId - Editar comentario propio
+    router.put('/:id/comments/:commentId',
+        [
+            body('contenido').trim().notEmpty().withMessage('El comentario es obligatorio')
+                .isLength({ max: 500 }).withMessage('El comentario no puede exceder 500 caracteres')
+        ],
+        validate,
+        commentController.update.bind(commentController)
+    );
+
+    // DELETE /api/tools/:id/comments/:commentId - Eliminar comentario propio
+    router.delete('/:id/comments/:commentId', commentController.delete.bind(commentController));
+
     // PATCH /api/tools/:id/favorito - Toggle favorito
     router.patch('/:id/favorito', toolController.toggleFavorito.bind(toolController));
 

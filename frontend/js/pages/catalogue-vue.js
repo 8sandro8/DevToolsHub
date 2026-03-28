@@ -3,6 +3,7 @@ import { computed, createApp, onMounted, reactive, ref } from 'https://cdn.jsdel
 const ROOT_ID = 'catalogue-vue-root';
 const API_BASE_URL = '/api';
 const ITEMS_PER_PAGE = 12;
+const AUTH_TOKEN_KEY = 'devtoolshub_token';
 
 const DEFAULT_LOGO = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23e5e7eb" width="100" height="100"/><text x="50" y="50" text-anchor="middle" dy=".3em" font-size="40">🛠️</text></svg>';
 
@@ -38,6 +39,30 @@ function buildQuery(filters) {
   params.set('limit', String(ITEMS_PER_PAGE));
   if (filters.favorito) params.set('favorito', 'true');
   return params.toString();
+}
+
+function renderToolCategories(categories) {
+  const select = document.getElementById('tool-categories');
+  if (!select) return;
+
+  const currentValue = select.value;
+  select.replaceChildren();
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Selecciona una categoría';
+  select.appendChild(placeholder);
+
+  safeArray(categories).forEach((category) => {
+    const option = document.createElement('option');
+    option.value = String(category.id);
+    option.textContent = category.nombre;
+    select.appendChild(option);
+  });
+
+  if (currentValue) {
+    select.value = currentValue;
+  }
 }
 
 function getVisiblePages(page, totalPages) {
@@ -128,6 +153,7 @@ if (root) {
       });
 
       const visiblePages = computed(() => getVisiblePages(state.pagination.page, state.pagination.totalPages));
+      const isAuthenticated = Boolean(localStorage.getItem(AUTH_TOKEN_KEY));
 
       function setActiveNav() {
         const homeLink = document.getElementById('nav-home');
@@ -145,6 +171,7 @@ if (root) {
 
         state.categories = safeArray(categoriesPayload.categories || categoriesPayload);
         state.tags = safeArray(tagsPayload.tags || tagsPayload);
+        renderToolCategories(state.categories);
       }
 
       async function loadTools() {
@@ -195,6 +222,10 @@ if (root) {
         sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
       }
 
+      function openCreateToolModal() {
+        window.DevToolsHub?.openToolModal?.();
+      }
+
       function applyFavoritesFromQuery() {
         const params = new URLSearchParams(window.location.search);
         state.filters.favorito = params.get('favoritos') === 'true';
@@ -225,11 +256,19 @@ if (root) {
         changePage,
         scheduleReload,
         toggleSort,
+        openCreateToolModal,
         formatRating,
         DEFAULT_LOGO,
+        isAuthenticated,
       };
     },
     template: `
+      <section v-if="isAuthenticated" class="d-flex justify-content-end mb-3">
+        <button id="btn-add-tool" type="button" class="btn btn-primary" @click="openCreateToolModal">
+          <i class="bi bi-plus-lg me-1"></i> Crear nueva herramienta
+        </button>
+      </section>
+
       <section class="search-section mb-4">
         <div class="row g-3 mb-3">
           <div class="col-12 col-md">

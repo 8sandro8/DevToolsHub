@@ -4,26 +4,18 @@
 ---
 
 ## Última actualización
-**Fecha:** 2026-03-28
-**Sesión:** session-2026-03-28-devtoolshub
+**Fecha:** 2026-03-29
+**Sesión:** DevToolsHub-fix-create-tool-flow-2026-03-29
 
 ---
 
 ## Estado actual
 
-- AA2 está completo en lo esencial: 16/16 obligatorios y 16/16 adicionales.
-- Backend suite verde.
-- Dark mode corregido.
-- Home y Buscador siguen bien con Wikipedia REST API.
-- El catálogo quedó resuelto en dos pasos:
-  1. el nombre visible volvió a salir de `tool.nombre`;
-  2. el badge se simplificó de `Fuente externa: Wikipedia` a `Fuente: Wikipedia`.
-- Archivo principal tocado en la corrección visual: `frontend/js/pages/catalogue-vue.js`.
+- El flujo de crear herramienta quedó reparado en catálogo Vue.
+- El selector de categoría ahora se rellena y se preselecciona correctamente al abrir el modal.
+- `Save` ya no falla por globals ausentes (`TagManager`, `_VALIDATION`) en la página principal.
+- La validación obligatoria sigue activa y el submit ya llega al backend.
 
-## Pendiente real
+## Cierre
 
-- Pendiente: validación final / revisión visual para cerrar con confianza.
-
-## Nota
-
-- Al cierre del proyecto se preparará una defensa final detallada con evidencia, decisiones y resultados.
+- Validación focalizada ejecutada con éxito para el flujo de alta de herramientas.
