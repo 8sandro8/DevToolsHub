@@ -1,108 +1,198 @@
-# 🚀 DevToolsHub
+# DevToolsHub
 
-Un catálogo web de herramientas para desarrolladores donde puedes descubrir, buscar y guardar tus herramientas favoritas. Lo he creado para la evaluación de Lenguajes de Marcas y Entornos de Desarrollo de 1º de DAM.
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-green)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-blue)](https://expressjs.com/)
+[![SQLite](https://img.shields.io/badge/SQLite-better--sqlite3-orange)](https://github.com/WiseLibs/better-sqlite3)
+[![JWT](https://img.shields.io/badge/JWT-auth-yellow)](https://jwt.io/)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5-purple)](https://getbootstrap.com/)
+[![Jest](https://img.shields.io/badge/Jest-testing-red)](https://jestjs.io/)
+[![License](https://img.shields.io/badge/License-MIT-lightgrey)](LICENSE)
 
-## ¿Qué es?
+DevToolsHub es una aplicación web para gestionar y organizar un catálogo de herramientas de desarrollo. Permite a los usuarios registrar herramientas, categorizarlas, añadirles tags, y visualizar información relevante como estadísticas de GitHub.
 
-DevToolsHub es una aplicación web completa que te permite:
+## Stack Tecnológico
 
-- **Explorar** un catálogo de herramientas developer (IDEs, APIs, databases, etc.)
-- **Buscar** por nombre o filtrar por categorías
-- **Ver detalles** de cada herramienta con información enriquecida
-- **Crear, editar y eliminar** herramientas (CRUD completo)
-- **Guardar favoritos** para acceder rápido a las que más usas
-- **Iniciar sesión** con usuario y contraseña
-- **Modo oscuro** porque... ¡es más molón!
+| Tecnología | Versión | Descripción |
+|------------|---------|-------------|
+| Node.js | 20.x | Entorno de ejecución JavaScript |
+| Express | 4.x | Framework web para API REST |
+| better-sqlite3 | 12.x | Driver SQLite para base de datos |
+| JWT | 9.x | Autenticación basada en tokens |
+| Multer | 2.x | Middleware para upload de archivos |
+| express-validator | 7.x | Validación de datos |
+| Bootstrap 5 | 5.x | Framework CSS para el frontend |
+| Jest | 29.x | Framework de testing |
 
-## 🛠️ Tecnologías que he usado
+## Funcionalidades Principales
 
-| Categoría | Tecnología |
-|-----------|------------|
-| Frontend | HTML5, CSS3, JavaScript (Vanilla + Vue 3 por CDN) |
-| Backend | Node.js + Express |
-| Base de datos | SQLite |
-| Autenticación | JWT (JSON Web Tokens) |
-| Contenedores | Docker + Docker Compose |
-| APIs externas | Wikipedia REST API |
+- **CRUD de Herramientas** — Crear, leer, actualizar y archivar herramientas de desarrollo
+- **Gestión de Categorías** — Organización de herramientas por categorías con colores personalizados
+- **Sistema de Tags** — Etiquetado flexible de herramientas con relaciones muchos a muchos
+- **Autenticación JWT** — Registro y login con tokens JWT seguros
+- **Upload de Imágenes** — Subida de logos e imágenes (límite 5MB)
+- **PWA** — Aplicación web progresiva instalable (Service Worker + Manifest)
+- **Integración GitHub** — Visualización de estrellas, forks y último commit de repositorios
+- **Ordenamiento** — Ordenar por nombre, categoría o fecha (ascendente/descendente)
+- **Validación Backend** — Validación de datos con express-validator
+- **Tests Automatizados** — 51 tests con Jest + Supertest
 
-## ✨ Funcionalidades
+## Requisitos Previos
 
-- **Catálogo dinámico** - Las herramientas se cargan desde la API
-- **Búsqueda en tiempo real** - Encuentra herramientas al instante
-- **Filtros por categoría** - API Testing, Code Editors, Version Control, etc.
-- **Vista detalle** - Información completa de cada herramienta
-- **Sistema de favoritos** - Guarda tus herramientas preferidas
-- **CRUD completo** - Crea, lee, actualiza y borra herramientas
-- **Autenticación** - Registro y login con JWT
-- **Modo oscuro** - Toggle para cambiar el tema
-- **Enriquecimiento con Wikipedia** - Información adicional de cada herramienta
+- Node.js 18.x o superior
+- npm 9.x o superior
+- Git
 
-## 🚀 Cómo levantarlo
+## Instalación y Puesta en Marcha
 
-### Opción 1: Con Docker (la más fácil)
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/8sandro8/DevToolsHub.git
+   cd DevToolsHub
+   ```
 
-```bash
-# Clona el proyecto y entra en la carpeta
-cd DevToolsHub
+2. **Instalar dependencias del backend**
+   ```bash
+   cd backend
+   npm install
+   ```
 
-# Levanta el proyecto
-docker compose up --build
+3. **Configurar variables de entorno**
+   ```bash
+   cp .env.example .env
+   ```
+   Luego edita el archivo `.env` y establece `JWT_SECRET` con una clave segura.
 
-# Abre en tu navegador
-http://localhost:4002
-```
+4. **Iniciar el servidor**
+   ```bash
+   npm start
+   ```
+   El servidor arrancará en `http://localhost:4001`
 
-### Opción 2: Sin Docker
+5. **Acceder al frontend**
+   - Abre `http://localhost:4001` en tu navegador
+   - O usa la extensión "Live Server" de VS Code con el archivo `frontend/index.html`
 
-```bash
-# Entra en el backend
-cd backend
+## Variables de Entorno
 
-# Instala dependencias
-npm install
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `PORT` | Puerto del servidor | `4001` |
+| `JWT_SECRET` | Clave secreta para firmar tokens JWT | `tu-clave-secreta-aqui` |
+| `CORS_ORIGIN` | Origen permitido para CORS | `*` |
+| `NODE_ENV` | Entorno de ejecución | `development` |
+| `UPLOAD_DIR` | Directorio para archivos subidos | `uploads` |
+| `MAX_FILE_SIZE` | Tamaño máximo de archivo (bytes) | `5242880` |
 
-# Arranca el servidor
-npm run dev
-
-# Abre en tu navegador
-http://localhost:4001
-```
-
-## 📂 Estructura del proyecto
+## Estructura del Proyecto
 
 ```
 DevToolsHub/
-├── backend/              # Servidor Node.js + Express
+├── backend/
 │   ├── src/
-│   │   ├── controllers/ # Endpoints de la API
-│   │   ├── services/    # Lógica de negocio
-│   │   ├── repositories/# Acceso a SQLite
-│   │   └── middleware/  # Autenticación JWT
-│   └── database/        # Esquema y datos iniciales
-├── frontend/            # Interfaz web
-│   ├── js/             # JavaScript y Vue
-│   └── css/            # Estilos
-├── data/               # Base de datos SQLite
-└── docker-compose.yml  # Configuración Docker
+│   │   ├── config/         # Configuración de base de datos
+│   │   ├── controllers/    # Controladores (auth, tools, tags, github)
+│   │   ├── middleware/     # Auth, upload, validación, errores
+│   │   ├── repositories/   # Acceso a datos (SQL)
+│   │   ├── routes/         # Definición de endpoints
+│   │   ├── services/       # Lógica de negocio
+│   │   ├── app.js          # Configuración Express
+│   │   └── server.js       # Entry point
+│   ├── tests/              # Tests Jest
+│   ├── uploads/            # Archivos subidos
+│   ├── .env.example        # Variables de ejemplo
+│   └── package.json
+├── frontend/
+│   ├── index.html          # Vista principal
+│   ├── login.html          # Login/Registro
+│   ├── detalle.html        # Detalle de herramienta
+│   ├── css/                # Estilos
+│   ├── js/                 # JavaScript cliente
+│   ├── icons/              # Iconos
+│   ├── assets/             # Recursos estáticos
+│   ├── manifest.json       # PWA manifest
+│   └── sw.js               # Service Worker
+├── database/
+│   ├── schema.sql          # Schema de la base de datos
+│   ├── seed.sql            # Datos iniciales
+│   └── migrations/         # Migraciones
+├── docs/                   # Documentación
+└── README.md               # Este archivo
 ```
 
-## 🔐 Credenciales de prueba
+## API Endpoints
 
-Si quieres probar el panel de admin:
+### Autenticación (Públicas)
 
-- **Usuario:** `Sandro`
-- **Contraseña:** `Sandro`
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/auth/register` | Registrar nuevo usuario |
+| POST | `/api/auth/login` | Iniciar sesión y obtener JWT |
 
-## 📝 Lo que he aprendido
+### Herramientas (GET pública, Mutaciones protegidas)
 
-Este proyecto me ha servido para practicar:
-- Consumo de APIs REST
-- Manipulación del DOM y Vue.js
-- SQLite y consultas SQL
-- Autenticación con JWT
-- Docker y contenedores
-- Git flow con ramas y Pull Requests
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/tools` | No | Listar todas las herramientas |
+| GET | `/api/tools/:id` | No | Obtener herramienta por ID |
+| POST | `/api/tools` | Sí | Crear nueva herramienta |
+| PUT | `/api/tools/:id` | Sí | Actualizar herramienta |
+| DELETE | `/api/tools/:id` | Sí | Archivar herramienta |
+| PATCH | `/api/tools/:id/favorito` | Sí | Toggle favorito |
+| GET | `/api/tools/:id/github-stats` | No | Obtener stats de GitHub |
 
----
+### Categorías (GET pública, Mutaciones protegidas)
 
-Hecho con 💻 por un estudiante de 1º de DAM. ¡Espero que te sirva!
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/categories` | No | Listar todas las categorías |
+| POST | `/api/categories` | Sí | Crear nueva categoría |
+| PUT | `/api/categories/:id` | Sí | Actualizar categoría |
+| DELETE | `/api/categories/:id` | Sí | Eliminar categoría |
+
+### Tags (GET pública, Mutaciones protegidas)
+
+| Método | Ruta | Auth | Descripción |
+|--------|------|------|-------------|
+| GET | `/api/tags` | No | Listar todos los tags |
+| GET | `/api/tags/:id` | No | Obtener tag por ID |
+| POST | `/api/tags` | Sí | Crear nuevo tag |
+| PUT | `/api/tags/:id` | Sí | Actualizar tag |
+| DELETE | `/api/tags/:id` | Sí | Eliminar tag |
+| GET | `/api/tags/:id/tools` | No | Obtener herramientas con este tag |
+| POST | `/api/tags/:id/tools` | Sí | Asignar herramientas al tag |
+| PUT | `/api/tags/:id/tools` | Sí | Actualizar todas las herramientas del tag |
+| DELETE | `/api/tags/:id/tools/:toolId` | Sí | Desasignar herramienta del tag |
+
+### Endpoints Generales
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/` | Servir frontend |
+| GET | `/login` | Página de login |
+| GET | `/detalle` | Página de detalle |
+| GET | `/health` | Health check |
+| GET | `/api` | Info de la API |
+| GET | `/uploads/*` | Archivos subidos |
+
+## Tests
+
+Ejecutar todos los tests:
+```bash
+cd backend
+npm test
+```
+
+Ejecutar tests en modo watch:
+```bash
+npm run test:watch
+```
+
+Cobertura actual: **51 tests** con Jest + Supertest cubriendo controladores, middleware y validación.
+
+## Capturas de Pantalla
+
+<!-- TODO: añadir capturas -->
+
+## Licencia
+
+MIT License — Consulta el archivo [LICENSE](LICENSE) para más detalles.
