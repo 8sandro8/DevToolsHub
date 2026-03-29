@@ -772,10 +772,31 @@ const Modal = {
         }
     },
     
-    open(editingTool = null) {
+    async open(editingTool = null) {
         // Initialize bootstrap modal if not already
         if (!this.bootstrapModal) {
             this.init();
+        }
+
+        // Load categories if not already loaded (needed for detail page)
+        if (_state.categories.length === 0) {
+            try {
+                const catsData = await _API.getCategories();
+                _state.categories = catsData.categories || catsData || [];
+                CategorySelect.render(_state.categories);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        // Load tags if not already loaded (needed for detail page)
+        const hasTagManager = typeof TagManager !== 'undefined' && TagManager;
+        if (hasTagManager && TagManager.tags.length === 0) {
+            try {
+                await TagManager.loadTags();
+            } catch (error) {
+                console.error('Error loading tags:', error);
+            }
         }
         
         const form = _DOM.$('#tool-form');
@@ -783,8 +804,6 @@ const Modal = {
         const ratingDisplay = _DOM.$('#rating-display');
         
         if (!form) return;
-
-        const hasTagManager = typeof TagManager !== 'undefined' && TagManager;
         
         // Reset form validation
         form.classList.remove('was-validated');
@@ -813,6 +832,7 @@ const Modal = {
         
         // Set editing mode
         this.editingToolId = editingTool ? editingTool.id : null;
+        console.log('[DEBUG] Modal.open - editingToolId:', this.editingToolId, 'editingTool:', editingTool);
         
         if (editingTool) {
             // Edit mode - pre-fill form
@@ -838,9 +858,9 @@ const Modal = {
             // Set selected tags
             if (hasTagManager && editingTool.tags && editingTool.tags.length > 0) {
                 const tagIds = editingTool.tags.map(t => t.id);
-                ToolForm.renderTagSelect(tagIds);
+                TagManager.renderTagSelect(tagIds);
             } else if (hasTagManager) {
-                ToolForm.renderTagSelect([]);
+                TagManager.renderTagSelect([]);
             }
 
             // Show current image if exists
@@ -957,7 +977,7 @@ const Modal = {
 
 if (typeof window !== 'undefined') {
     window.DevToolsHub = window.DevToolsHub || {};
-    window.DevToolsHub.openToolModal = () => Modal.open();
+    window.DevToolsHub.openToolModal = (tool) => Modal.open(tool);
 }
 
 // ============================================
@@ -973,6 +993,8 @@ const ToolForm = {
         // Get form data
         const form = e.target;
         const formData = new FormData(form);
+        
+        console.log('[DEBUG] Form submit - editingToolId:', Modal.editingToolId, 'isDetailMode:', _state.isDetailMode);
         
         // Build tool data object
         const toolData = {
@@ -1014,7 +1036,9 @@ const ToolForm = {
             
             if (Modal.editingToolId) {
                 // Update existing tool
+                console.log('[DEBUG] Updating tool with ID:', Modal.editingToolId, 'Data:', toolData);
                 result = await _API.updateTool(Modal.editingToolId, toolData);
+                console.log('[DEBUG] Update result:', result);
                 savedToolId = Modal.editingToolId;
                 Toast.success('Herramienta actualizada correctamente');
             } else {
@@ -1037,8 +1061,20 @@ const ToolForm = {
             // Close modal
             Modal.close();
             
-            // Reload tools list
-            await ListView.loadTools();
+            console.log('[DEBUG] After save - savedToolId:', savedToolId, 'isDetailMode:', _state.isDetailMode);
+            
+            // Reload appropriate view based on current mode
+            console.log('[DEBUG] After save - isDetailMode:', _state.isDetailMode, 'savedToolId:', savedToolId);
+            if (_state.isDetailMode && savedToolId) {
+                console.log('[DEBUG] Reloading detail page for tool:', savedToolId);
+                // In detail page - reload the entire page to get fresh data
+                window.location.href = `detalle.html?id=${savedToolId}`;
+                return;
+            } else {
+                console.log('[DEBUG] Reloading list view');
+                // In list page - reload the tools list
+                await ListView.loadTools();
+            }
             
         } catch (error) {
             Toast.error(error.message || 'Error al guardar la herramienta');
@@ -2108,6 +2144,9 @@ const App = {
         if (_state.isDetailMode) {
             const toolId = _Utils.getQueryParam('id');
             if (toolId) {
+                // Initialize modal and form handlers for detail page
+                Modal.init();
+                ToolForm.setupEventListeners();
                 DetailView.render(toolId);
             } else {
                 window.location.href = 'index.html';

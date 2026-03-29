@@ -226,6 +226,30 @@ if (root) {
         window.DevToolsHub?.openToolModal?.();
       }
 
+      function openEditToolModal(tool) {
+        console.log('[Vue] openEditToolModal called with:', tool);
+        if (window.DevToolsHub?.openToolModal) {
+          window.DevToolsHub.openToolModal(tool);
+        } else {
+          console.error('[Vue] DevToolsHub.openToolModal not available');
+        }
+      }
+
+      async function toggleFavorite(toolId) {
+        try {
+          await fetch(`${API_BASE_URL}/tools/${toolId}/favorito`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem(AUTH_TOKEN_KEY)}`
+            }
+          });
+          // Reload tools to reflect the change
+          await loadTools();
+        } catch (error) {
+          console.error('Error toggling favorite:', error);
+        }
+      }
+
       function applyFavoritesFromQuery() {
         const params = new URLSearchParams(window.location.search);
         state.filters.favorito = params.get('favoritos') === 'true';
@@ -257,6 +281,8 @@ if (root) {
         scheduleReload,
         toggleSort,
         openCreateToolModal,
+        openEditToolModal,
+        toggleFavorite,
         formatRating,
         DEFAULT_LOGO,
         isAuthenticated,
@@ -376,7 +402,15 @@ if (root) {
                 </ul>
               </div>
               <div class="card-footer bg-transparent border-0 pb-3">
-                <a class="btn btn-outline-primary btn-sm w-100" :href="'detalle.html?id=' + tool.id">Ver detalle</a>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-outline-primary btn-sm flex-grow-1" :href="'detalle.html?id=' + tool.id">Ver detalle</a>
+                  <button v-if="isAuthenticated" class="btn btn-outline-secondary btn-icon btn-edit" aria-label="Editar herramienta" title="Editar" @click="openEditToolModal(tool)">
+                    <span class="edit-icon">✏️</span>
+                  </button>
+                  <button v-if="isAuthenticated" class="btn btn-icon btn-favorite" :class="tool.es_favorito ? 'btn-warning' : 'btn-outline-warning'" aria-label="Marcar como favorito" :title="tool.es_favorito ? 'Quitar de favoritos' : 'Añadir a favoritos'" @click="toggleFavorite(tool.id)">
+                    <span class="favorite-icon">{{ tool.es_favorito ? '★' : '☆' }}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </article>

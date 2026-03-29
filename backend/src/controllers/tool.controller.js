@@ -66,12 +66,15 @@ class ToolController {
 
     update = (req, res, next) => {
         try {
+            console.log('[DEBUG] PUT /tools/:id - id:', req.params.id, 'body:', req.body);
             const tool = this.service.update(req.params.id, req.body);
+            console.log('[DEBUG] update result:', tool);
             if (!tool) {
                 return res.status(404).json({ error: 'Herramienta no encontrada' });
             }
             res.json({ tool });
         } catch (error) {
+            console.error('[DEBUG] update error:', error);
             next(error);
         }
     }
