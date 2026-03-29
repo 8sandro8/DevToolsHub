@@ -3,22 +3,17 @@
  * Core middleware and routing setup
  */
 
-const path = require('path');
-const dotenv = require('dotenv');
-
-// Load env from root first (Docker Compose/local root runs), then fallback to backend/.env
-dotenv.config({ path: path.resolve(__dirname, '..', '..', '.env') });
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
 const createAuthRoutes = require('./routes/auth.routes');
 const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
-const { UPLOADS_DIR } = require('./config/paths');
 
 const app = express();
 
@@ -28,15 +23,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// Normalize charset casing for JSON requests (supertest/Node 25 compatibility)
-app.use((req, res, next) => {
-    const contentType = req.headers['content-type'];
-    if (contentType && /^application\/json/i.test(contentType)) {
-        req.headers['content-type'] = 'application/json';
-    }
-    next();
-});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -52,9 +38,6 @@ if (process.env.NODE_ENV !== 'production') {
 // Static files - Frontend
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
-
-// Static files - Uploads
-app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Root route - TEST
 app.get('/test', (req, res) => {
@@ -74,11 +57,6 @@ app.get('/detalle', (req, res) => {
 // Login page
 app.get('/login', (req, res) => {
     res.sendFile(path.join(frontendPath, 'login.html'));
-});
-
-// Browser default favicon request — avoid noisy 404 in the console
-app.get('/favicon.ico', (req, res) => {
-    res.status(204).end();
 });
 
 // Health check

@@ -4,7 +4,7 @@
 -- ============================================
 -- CATEGORÍAS INICIALES
 -- ============================================
-INSERT OR IGNORE INTO category (nombre, color) VALUES
+INSERT INTO category (nombre, color) VALUES
     ('API Testing', '#10b981'),
     ('Code Editors', '#3b82f6'),
     ('Version Control', '#8b5cf6'),
@@ -13,15 +13,6 @@ INSERT OR IGNORE INTO category (nombre, color) VALUES
     ('Design', '#ec4899'),
     ('Database', '#06b6d4'),
     ('DevOps', '#6366f1');
-
--- ============================================
--- TAGS INICIALES
--- ============================================
-INSERT OR IGNORE INTO tag (nombre, color) VALUES
-    ('Frontend', '#0d6efd'),
-    ('Backend', '#198754'),
-    ('Testing', '#6f42c1'),
-    ('DevOps', '#fd7e14');
 
 -- ============================================
 -- HERRAMIENTAS DE EJEMPLO
@@ -54,20 +45,3 @@ INSERT INTO tool_category (tool_id, category_id) VALUES (5, 8);
 
 -- Figma -> Design
 INSERT INTO tool_category (tool_id, category_id) VALUES (6, 6);
-
--- ============================================
--- RELACIONES HERRAMIENTA-TAG
--- ============================================
--- Postman -> Backend, Testing
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (1, 2);
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (1, 3);
-
--- VS Code -> Frontend, Backend
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (2, 1);
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (2, 2);
-
--- GitHub -> DevOps
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (3, 4);
-
--- Docker -> DevOps
-INSERT INTO tool_tag (tool_id, tag_id) VALUES (5, 4);

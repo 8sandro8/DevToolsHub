@@ -3,8 +3,6 @@
  * ES6+ Vanilla JavaScript with Bootstrap 5
  */
 
-import { initThemeToggle } from './theme.js';
-
 // ============================================
 // Auth helpers (inline — no module import needed)
 // ============================================
@@ -52,8 +50,6 @@ const _state = {
     filters: {
         search: '',
         category: '',
-        tag: '',
-        anio: '',
         favorito: false,
         page: 1
     },
@@ -64,12 +60,6 @@ const _state = {
         totalPages: 0
     },
     isDetailMode: !!window.__DETAIL_MODE__
-};
-
-// State for sorting
-const _sortState = {
-    sortField: 'nombre',
-    sortDirection: 'asc'
 };
 
 // ============================================
@@ -105,17 +95,7 @@ const _API = {
 
             if (!response.ok) {
                 const error = await response.json().catch(() => ({}));
-                
-                // Manejar los distintos formatos de error del backend
-                let errorMessage = `HTTP error! status: ${response.status}`;
-                if (error.message) {
-                    errorMessage = error.message;
-                } else if (error.error) {
-                    errorMessage = error.error;
-                } else if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
-                    errorMessage = error.errors.map(e => e.msg).join(', ');
-                }
-                throw new Error(errorMessage);
+                throw new Error(error.message || `HTTP error! status: ${response.status}`);
             }
             return await response.json();
         } catch (error) {
@@ -128,8 +108,6 @@ const _API = {
         const params = new URLSearchParams();
         if (filters.search) params.append('buscar', filters.search);
         if (filters.category) params.append('categoria', filters.category);
-        if (filters.tag) params.append('tag', filters.tag);
-        if (filters.anio) params.append('anio', filters.anio);
         if (filters.page) params.append('page', filters.page);
         if (filters.limit) params.append('limit', filters.limit);
         if (filters.favorito) params.append('favorito', 'true');
@@ -145,34 +123,6 @@ const _API = {
 
     getToolById(id) {
         return this.request(`/tools/${id}`);
-    },
-
-    getToolHistory(id) {
-        return this.request(`/tools/${id}/history`);
-    },
-
-    getToolComments(id) {
-        return this.request(`/tools/${id}/comments`);
-    },
-
-    createToolComment(id, commentData) {
-        return this.request(`/tools/${id}/comments`, {
-            method: 'POST',
-            body: JSON.stringify(commentData)
-        });
-    },
-
-    updateToolComment(toolId, commentId, commentData) {
-        return this.request(`/tools/${toolId}/comments/${commentId}`, {
-            method: 'PUT',
-            body: JSON.stringify(commentData)
-        });
-    },
-
-    deleteToolComment(toolId, commentId) {
-        return this.request(`/tools/${toolId}/comments/${commentId}`, {
-            method: 'DELETE'
-        });
     },
 
     getCategories() {
@@ -208,10 +158,6 @@ const _API = {
 
     getTags() {
         return this.request('/tags');
-    },
-
-    getGitHubStats(toolId) {
-        return this.request(`/tools/${toolId}/github-stats`);
     }
 };
 
@@ -312,67 +258,8 @@ const _Utils = {
             text: text.substring(0, maxLength).trim() + '...',
             truncated: true
         };
-    },
-
-    formatRelativeTime(dateString) {
-        if (!dateString) return '';
-        const isSqliteTimestamp = typeof dateString === 'string'
-            && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateString);
-        const date = new Date(isSqliteTimestamp ? `${dateString.replace(' ', 'T')}Z` : dateString);
-        if (Number.isNaN(date.getTime())) return '';
-        const now = new Date();
-        const diffMs = now - date;
-        const diffSeconds = Math.floor(diffMs / 1000);
-        const diffMinutes = Math.floor(diffSeconds / 60);
-        const diffHours = Math.floor(diffMinutes / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        const diffWeeks = Math.floor(diffDays / 7);
-        const diffMonths = Math.floor(diffDays / 30);
-        const diffYears = Math.floor(diffDays / 365);
-        
-        const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
-        
-        if (diffYears !== 0) return rtf.format(-diffYears, 'year');
-        if (diffMonths !== 0) return rtf.format(-diffMonths, 'month');
-        if (diffWeeks !== 0) return rtf.format(-diffWeeks, 'week');
-        if (diffDays !== 0) return rtf.format(-diffDays, 'day');
-        if (diffHours !== 0) return rtf.format(-diffHours, 'hour');
-        if (diffMinutes !== 0) return rtf.format(-diffMinutes, 'minute');
-        
-        return 'hace un momento';
     }
 };
-
-// ============================================
-// Sorting Functions
-// ============================================
-function sortTools(tools) {
-    return [...tools].sort((a, b) => {
-        let valA, valB;
-        
-        // Handle different field types
-        if (_sortState.sortField === 'fecha_creacion') {
-            // Date comparison - use ISO strings directly
-            valA = a.fecha_creacion || '';
-            valB = b.fecha_creacion || '';
-        } else if (_sortState.sortField === 'categoria') {
-            // For category, we need to get the first category name
-            valA = (a.categories && a.categories.length > 0 && a.categories[0].nombre) || '';
-            valB = (b.categories && b.categories.length > 0 && b.categories[0].nombre) || '';
-            valA = valA.toString().toLowerCase();
-            valB = valB.toString().toLowerCase();
-        } else {
-            // Default: sort by name
-            valA = (a.nombre || '').toString().toLowerCase();
-            valB = (b.nombre || '').toString().toLowerCase();
-        }
-        
-        // Compare values
-        if (valA < valB) return _sortState.sortDirection === 'asc' ? -1 : 1;
-        if (valA > valB) return _sortState.sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-}
 
 // ============================================
 // Tool Card Component (Bootstrap Card)
@@ -383,9 +270,9 @@ const ToolCard = {
         const template = _DOM.$('#tool-card-template');
         const card = template.content.cloneNode(true);
         
-        // Set card data - use image_url if available, otherwise logo_url
+        // Set card data
         const logo = card.querySelector('.tool-logo');
-        logo.src = tool.image_url || tool.logo_url || _CONFIG.DEFAULT_LOGO;
+        logo.src = tool.logo_url || _CONFIG.DEFAULT_LOGO;
         logo.alt = `${tool.nombre} logo`;
         
         const ratingStars = card.querySelector('.rating-stars');
@@ -393,20 +280,10 @@ const ToolCard = {
         
         const name = card.querySelector('.tool-name');
         name.textContent = tool.nombre;
-
-        const primaryCategory = card.querySelector('.tool-primary-category');
-        primaryCategory.textContent = (tool.categories && tool.categories.length > 0)
-            ? tool.categories[0].nombre
-            : 'Sin categoría';
-
+        
         const description = card.querySelector('.tool-description');
-        description.textContent = _Utils.truncateText(tool.descripcion || 'Sin descripción', 120).text;
-
-        const tagsSummary = card.querySelector('.tool-tags-summary');
-        tagsSummary.textContent = (tool.tags && tool.tags.length > 0)
-            ? tool.tags.map(tag => tag.nombre).join(', ')
-            : 'Sin tags';
-
+        description.textContent = tool.descripcion || 'Sin descripción';
+        
         const categoriesDiv = card.querySelector('.tool-categories');
         if (tool.categories && tool.categories.length > 0) {
             tool.categories.forEach(cat => {
@@ -475,61 +352,6 @@ const CategoryFilter = {
             });
             select.appendChild(option);
         });
-    }
-};
-
-// ============================================
-// Tag Filter Component
-// ============================================
-const TagFilter = {
-    render(tags) {
-        const select = _DOM.$('#tag-filter');
-        if (!select) return;
-
-        _DOM.clearElement(select);
-
-        const defaultOption = _DOM.createElement('option', '', {
-            value: '',
-            textContent: 'Todos los tags'
-        });
-        select.appendChild(defaultOption);
-
-        tags.forEach(tag => {
-            const option = _DOM.createElement('option', '', {
-                value: tag.id,
-                textContent: tag.nombre
-            });
-            select.appendChild(option);
-        });
-    }
-};
-
-// ============================================
-// Year Filter Component
-// ============================================
-const YearFilter = {
-    render() {
-        const select = _DOM.$('#year-filter');
-        if (!select) return;
-
-        _DOM.clearElement(select);
-
-        const defaultOption = _DOM.createElement('option', '', {
-            value: '',
-            textContent: 'Todos los años'
-        });
-        select.appendChild(defaultOption);
-
-        const currentYear = new Date().getFullYear();
-        const minYear = currentYear - 9;
-
-        for (let year = currentYear; year >= minYear; year--) {
-            const option = _DOM.createElement('option', '', {
-                value: String(year),
-                textContent: String(year)
-            });
-            select.appendChild(option);
-        }
     }
 };
 
@@ -772,31 +594,10 @@ const Modal = {
         }
     },
     
-    async open(editingTool = null) {
+    open(editingTool = null) {
         // Initialize bootstrap modal if not already
         if (!this.bootstrapModal) {
             this.init();
-        }
-
-        // Load categories if not already loaded (needed for detail page)
-        if (_state.categories.length === 0) {
-            try {
-                const catsData = await _API.getCategories();
-                _state.categories = catsData.categories || catsData || [];
-                CategorySelect.render(_state.categories);
-            } catch (error) {
-                console.error('Error loading categories:', error);
-            }
-        }
-
-        // Load tags if not already loaded (needed for detail page)
-        const hasTagManager = typeof TagManager !== 'undefined' && TagManager;
-        if (hasTagManager && TagManager.tags.length === 0) {
-            try {
-                await TagManager.loadTags();
-            } catch (error) {
-                console.error('Error loading tags:', error);
-            }
         }
         
         const form = _DOM.$('#tool-form');
@@ -813,26 +614,19 @@ const Modal = {
         form.reset();
         this.clearErrors();
         
-        // Preserve a valid category selection for add mode
+        // Clear category selection
         const categorySelect = _DOM.$('#tool-categories');
         if (categorySelect) {
-            const firstValidOption = Array.from(categorySelect.options).find(opt => opt.value);
-            if (firstValidOption) {
-                firstValidOption.selected = true;
-            }
+            Array.from(categorySelect.options).forEach(opt => opt.selected = false);
         }
         
         // Reset rating display
         if (ratingDisplay) {
             ratingDisplay.textContent = '★★★☆☆';
         }
-
-        // Reset image previews
-        this.resetImagePreviews();
         
         // Set editing mode
         this.editingToolId = editingTool ? editingTool.id : null;
-        console.log('[DEBUG] Modal.open - editingToolId:', this.editingToolId, 'editingTool:', editingTool);
         
         if (editingTool) {
             // Edit mode - pre-fill form
@@ -856,16 +650,11 @@ const Modal = {
             }
             
             // Set selected tags
-            if (hasTagManager && editingTool.tags && editingTool.tags.length > 0) {
+            if (TagManager && editingTool.tags && editingTool.tags.length > 0) {
                 const tagIds = editingTool.tags.map(t => t.id);
                 TagManager.renderTagSelect(tagIds);
-            } else if (hasTagManager) {
+            } else if (TagManager) {
                 TagManager.renderTagSelect([]);
-            }
-
-            // Show current image if exists
-            if (editingTool.image_url) {
-                this.showCurrentImage(editingTool.image_url);
             }
         } else {
             // Add mode
@@ -877,7 +666,7 @@ const Modal = {
             }
             
             // Render tag select (empty for new tool)
-            if (hasTagManager) {
+            if (TagManager) {
                 TagManager.renderTagSelect([]);
             }
         }
@@ -938,47 +727,8 @@ const Modal = {
             if (btnText) btnText.classList.remove('d-none');
             if (btnLoading) btnLoading.classList.add('d-none');
         }
-    },
-
-    resetImagePreviews() {
-        const currentPreview = _DOM.$('#current-image-preview');
-        const newPreview = _DOM.$('#new-image-preview');
-        const imageInput = _DOM.$('#tool-image');
-
-        if (currentPreview) currentPreview.classList.add('d-none');
-        if (newPreview) newPreview.classList.add('d-none');
-        if (imageInput) imageInput.value = '';
-    },
-
-    showCurrentImage(imageUrl) {
-        const currentPreview = _DOM.$('#current-image-preview');
-        const currentImage = _DOM.$('#current-image');
-
-        if (currentPreview && currentImage) {
-            currentImage.src = imageUrl;
-            currentPreview.classList.remove('d-none');
-        }
-    },
-
-    showNewImagePreview(file) {
-        const newPreview = _DOM.$('#new-image-preview');
-        const newImage = _DOM.$('#new-image');
-
-        if (newPreview && newImage && file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                newImage.src = e.target.result;
-                newPreview.classList.remove('d-none');
-            };
-            reader.readAsDataURL(file);
-        }
     }
 };
-
-if (typeof window !== 'undefined') {
-    window.DevToolsHub = window.DevToolsHub || {};
-    window.DevToolsHub.openToolModal = (tool) => Modal.open(tool);
-}
 
 // ============================================
 // Form Handler
@@ -994,8 +744,6 @@ const ToolForm = {
         const form = e.target;
         const formData = new FormData(form);
         
-        console.log('[DEBUG] Form submit - editingToolId:', Modal.editingToolId, 'isDetailMode:', _state.isDetailMode);
-        
         // Build tool data object
         const toolData = {
             nombre: formData.get('nombre')?.trim(),
@@ -1004,77 +752,49 @@ const ToolForm = {
             logo_url: formData.get('logo_url')?.trim() || null,
             rating: parseInt(formData.get('rating'), 10) || 3,
             categories: CategorySelect.getSelected(),
-            tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
+            tags: TagManager ? TagManager.getSelectedTags() : []
         };
         
-        // Frontend validation with inline error messages
-        const nameInput = _DOM.$('#tool-name');
-        const descInput = _DOM.$('#tool-description');
-        const urlInput  = _DOM.$('#tool-url');
-        const logoInput = _DOM.$('#tool-logo');
-        const catSelect = _DOM.$('#tool-categories');
-
-        let isValid = true;
-
-        if (!_VALIDATION.required(nameInput, 'El nombre')) isValid = false;
-        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) isValid = false;
-
-        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) isValid = false;
-        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) isValid = false;
-
-        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) isValid = false;
-        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) isValid = false;
-        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) isValid = false;
-
-        if (!isValid) return;
+        // Basic validation
+        if (!toolData.nombre) {
+            Modal.showError('nombre', 'El nombre es requerido');
+            return;
+        }
+        
+        if (toolData.nombre.length > 100) {
+            Modal.showError('nombre', 'El nombre no puede exceder 100 caracteres');
+            return;
+        }
+        
+        if (toolData.url && !this.isValidUrl(toolData.url)) {
+            Modal.showError('url', 'URL inválida');
+            return;
+        }
+        
+        if (toolData.logo_url && !this.isValidUrl(toolData.logo_url)) {
+            Modal.showError('logo_url', 'URL de logo inválida');
+            return;
+        }
         
         try {
             Modal.setLoading(true);
             
             let result;
-            let savedToolId;
-            
             if (Modal.editingToolId) {
                 // Update existing tool
-                console.log('[DEBUG] Updating tool with ID:', Modal.editingToolId, 'Data:', toolData);
                 result = await _API.updateTool(Modal.editingToolId, toolData);
-                console.log('[DEBUG] Update result:', result);
-                savedToolId = Modal.editingToolId;
                 Toast.success('Herramienta actualizada correctamente');
             } else {
                 // Create new tool
                 result = await _API.createTool(toolData);
-                savedToolId = result.tool?.id;
                 Toast.success('Herramienta creada correctamente');
-            }
-
-            // Upload image if there's a new one
-            if (savedToolId) {
-                try {
-                    await this.handleImageUpload(savedToolId);
-                } catch (imageError) {
-                    // Image upload failed but tool was saved
-                    console.error('Image upload error:', imageError);
-                }
             }
             
             // Close modal
             Modal.close();
             
-            console.log('[DEBUG] After save - savedToolId:', savedToolId, 'isDetailMode:', _state.isDetailMode);
-            
-            // Reload appropriate view based on current mode
-            console.log('[DEBUG] After save - isDetailMode:', _state.isDetailMode, 'savedToolId:', savedToolId);
-            if (_state.isDetailMode && savedToolId) {
-                console.log('[DEBUG] Reloading detail page for tool:', savedToolId);
-                // In detail page - reload the entire page to get fresh data
-                window.location.href = `detalle.html?id=${savedToolId}`;
-                return;
-            } else {
-                console.log('[DEBUG] Reloading list view');
-                // In list page - reload the tools list
-                await ListView.loadTools();
-            }
+            // Reload tools list
+            await ListView.loadTools();
             
         } catch (error) {
             Toast.error(error.message || 'Error al guardar la herramienta');
@@ -1084,11 +804,8 @@ const ToolForm = {
     },
     
     isValidUrl(string) {
-        if (!string) return true; // Allow empty URLs
         try {
-            // If no protocol, add one for validation purposes
-            const urlToCheck = string.match(/^https?:\/\//) ? string : 'https://' + string;
-            new URL(urlToCheck);
+            new URL(string);
             return true;
         } catch (_) {
             return false;
@@ -1100,11 +817,6 @@ const ToolForm = {
         if (form) {
             form.addEventListener('submit', (e) => this.handleSubmit(e));
         }
-
-        // Auto-clear validation errors when user starts typing
-        ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
-            _VALIDATION.setupAutoClear(_DOM.$(sel));
-        });
         
         // Rating input change
         const ratingInput = _DOM.$('#tool-rating');
@@ -1121,66 +833,10 @@ const ToolForm = {
             Modal.editingToolId = null;
         });
         
-        // Image file input handler
-        const imageInput = _DOM.$('#tool-image');
-        if (imageInput) {
-            imageInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    // Check file size (5MB max)
-                    if (file.size > 5 * 1024 * 1024) {
-                        Toast.error('El archivo no puede superar los 5MB');
-                        imageInput.value = '';
-                        return;
-                    }
-                    // Check file type
-                    if (!file.type.startsWith('image/')) {
-                        Toast.error('Solo se permiten archivos de imagen');
-                        imageInput.value = '';
-                        return;
-                    }
-                    Modal.showNewImagePreview(file);
-                }
-            });
-        }
-
-        // Delete image button handler
-        const deleteImageBtn = _DOM.$('#btn-delete-image');
-        if (deleteImageBtn) {
-            deleteImageBtn.addEventListener('click', async () => {
-                if (!Modal.editingToolId) return;
-
-                if (!confirm('¿Estás seguro de que deseas eliminar la imagen?')) {
-                    return;
-                }
-
-                try {
-                    await _API.deleteImage(Modal.editingToolId);
-                    Toast.success('Imagen eliminada correctamente');
-                    Modal.resetImagePreviews();
-                    // Reload tools to update the card
-                    await ListView.loadTools();
-                } catch (error) {
-                    Toast.error(error.message || 'Error al eliminar la imagen');
-                }
-            });
-        }
-    },
-
-    // Handle image upload separately from form submit
-    async handleImageUpload(toolId) {
-        const imageInput = _DOM.$('#tool-image');
-        if (!imageInput || !imageInput.files[0]) {
-            return null;
-        }
-
-        try {
-            const result = await _API.uploadImage(toolId, imageInput.files[0]);
-            Toast.success('Imagen subida correctamente');
-            return result;
-        } catch (error) {
-            Toast.error(error.message || 'Error al subir la imagen');
-            throw error;
+        // Add tool button
+        const addBtn = _DOM.$('#btn-add-tool');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => Modal.open());
         }
     }
 };
@@ -1214,10 +870,10 @@ const DetailView = {
             // Header section with logo and title
             const headerSection = _DOM.createElement('div', 'detail-header');
             
-            // Logo - use image_url if available, otherwise logo_url
+            // Logo
             const logoWrapper = _DOM.createElement('div', 'detail-logo-wrapper');
             const logo = _DOM.createElement('img', 'detail-logo', {
-                src: tool.image_url || tool.logo_url || _CONFIG.DEFAULT_LOGO,
+                src: tool.logo_url || _CONFIG.DEFAULT_LOGO,
                 alt: `${tool.nombre} logo`
             });
             logoWrapper.appendChild(logo);
@@ -1372,97 +1028,9 @@ const DetailView = {
             metaSection.appendChild(updatedMeta);
             
             card.appendChild(metaSection);
-
-            const historySection = _DOM.createElement('div', 'detail-section', {
-                id: 'tool-history-section'
-            });
-
-            const historyTitle = _DOM.createElement('h3', 'detail-section-title', {
-                textContent: 'Historial de cambios'
-            });
-            historySection.appendChild(historyTitle);
-
-            const historySkeleton = _DOM.createElement('div', 'tool-history-skeleton');
-            historySkeleton.innerHTML = `
-                <div class="placeholder-glow">
-                    <span class="placeholder col-8 mb-2"></span>
-                    <span class="placeholder col-6"></span>
-                </div>
-            `;
-            historySection.appendChild(historySkeleton);
-
-            card.appendChild(historySection);
-
-            const commentsSection = _DOM.createElement('div', 'detail-section', {
-                id: 'tool-comments-section'
-            });
-
-            const commentsTitle = _DOM.createElement('h3', 'detail-section-title', {
-                textContent: 'Comentarios / opiniones'
-            });
-            commentsSection.appendChild(commentsTitle);
-
-            const commentsSkeleton = _DOM.createElement('div', 'tool-comments-skeleton');
-            commentsSkeleton.innerHTML = `
-                <div class="placeholder-glow mb-3">
-                    <span class="placeholder col-8 mb-2"></span>
-                    <span class="placeholder col-10"></span>
-                </div>
-            `;
-            commentsSection.appendChild(commentsSkeleton);
-
-            card.appendChild(commentsSection);
-            
-            // GitHub Stats section - will be loaded separately
-            const githubSection = _DOM.createElement('div', 'detail-section');
-            githubSection.id = 'github-stats-section';
-            
-            const githubTitle = _DOM.createElement('h3', 'detail-section-title', {
-                textContent: 'Stats del Repo GitHub'
-            });
-            githubSection.appendChild(githubTitle);
-            
-            // Skeleton loader
-            const skeletonLoader = _DOM.createElement('div', 'github-stats-skeleton');
-            skeletonLoader.innerHTML = `
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-8"></span>
-                        </div>
-                        <p class="mb-0 small text-muted">Estrellas</p>
-                    </div>
-                    <div class="col-4">
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-8"></span>
-                        </div>
-                        <p class="mb-0 small text-muted">Forks</p>
-                    </div>
-                    <div class="col-4">
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-8"></span>
-                        </div>
-                        <p class="mb-0 small text-muted">Último Commit</p>
-                    </div>
-                </div>
-            `;
-            githubSection.appendChild(skeletonLoader);
-            card.appendChild(githubSection);
             
             container.appendChild(backLink);
             container.appendChild(card);
-            
-            // Load GitHub stats after rendering
-            this.loadGitHubStats(toolId);
-
-            // Load history after rendering
-            this.loadToolHistory(toolId);
-
-            // Load comments after rendering
-            await this.loadToolComments(toolId);
-
-            // Setup comments form
-            this.setupCommentForm(toolId);
             
             // Setup read more button event
             this.setupReadMoreButton();
@@ -1519,292 +1087,6 @@ const DetailView = {
         } catch (error) {
             Toast.error('Error al eliminar la herramienta');
         }
-    },
-
-    async loadGitHubStats(toolId) {
-        const section = _DOM.$('#github-stats-section');
-        if (!section) return;
-
-        try {
-            const stats = await _API.getGitHubStats(toolId);
-            
-            // Clear skeleton loader
-            const skeleton = section.querySelector('.github-stats-skeleton');
-            if (skeleton) skeleton.remove();
-            
-            // Create stats display
-            const statsDiv = _DOM.createElement('div', 'github-stats-content');
-            statsDiv.innerHTML = `
-                <div class="row text-center">
-                    <div class="col-4">
-                        <div class="fs-4 fw-bold text-warning">
-                            <i class="bi bi-star-fill"></i> ${stats.starsFormatted}
-                        </div>
-                        <p class="mb-0 small text-muted">Estrellas</p>
-                    </div>
-                    <div class="col-4">
-                        <div class="fs-4 fw-bold text-primary">
-                            <i class="bi bi-git"></i> ${stats.forksFormatted}
-                        </div>
-                        <p class="mb-0 small text-muted">Forks</p>
-                    </div>
-                    <div class="col-4">
-                        <div class="fs-4 fw-bold text-success">
-                            <i class="bi bi-calendar-event"></i> ${_Utils.formatRelativeTime(stats.lastCommit)}
-                        </div>
-                        <p class="mb-0 small text-muted">Último Commit</p>
-                    </div>
-                </div>
-            `;
-            section.appendChild(statsDiv);
-            
-        } catch (error) {
-            // Silently hide section if tool has no GitHub URL or URL is invalid
-            // Only show "Stats no disponibles" for API errors
-            const skeleton = section.querySelector('.github-stats-skeleton');
-            if (skeleton) {
-                skeleton.innerHTML = `
-                    <div class="text-center text-muted py-2">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <span class="small">Stats no disponibles</span>
-                    </div>
-                `;
-            }
-        }
-    },
-
-    async loadToolHistory(toolId) {
-        const section = _DOM.$('#tool-history-section');
-        if (!section) return;
-
-        try {
-            const data = await _API.getToolHistory(toolId);
-            const history = data.history || data.data || [];
-
-            const skeleton = section.querySelector('.tool-history-skeleton');
-            if (skeleton) skeleton.remove();
-
-            if (!history.length) {
-                const empty = _DOM.createElement('p', 'text-muted mb-0', {
-                    textContent: 'Todavía no hay cambios registrados.'
-                });
-                section.appendChild(empty);
-                return;
-            }
-
-            const list = _DOM.createElement('div', 'list-group list-group-flush');
-            history.forEach((entry) => {
-                const item = _DOM.createElement('div', 'list-group-item px-0');
-                item.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div>
-                            <div class="fw-semibold">${_Utils.escapeHtml(entry.resumen || entry.accion || 'Cambio')}</div>
-                            <div class="small text-muted">${_Utils.escapeHtml(entry.accion || 'update')}</div>
-                        </div>
-                        <span class="small text-muted text-nowrap">${_Utils.formatDate(entry.fecha_creacion)}</span>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-
-            section.appendChild(list);
-        } catch (error) {
-            const skeleton = section.querySelector('.tool-history-skeleton');
-            if (skeleton) {
-                skeleton.innerHTML = `
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Historial no disponible
-                    </div>
-                `;
-            }
-        }
-    },
-
-    setupCommentForm(toolId) {
-        const form = _DOM.$('#tool-comment-form');
-        if (!form) return;
-
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const textarea = form.querySelector('#comment-content');
-            const submitBtn = form.querySelector('[type="submit"]');
-            const contenido = textarea ? textarea.value.trim() : '';
-
-            if (!contenido) {
-                Toast.error('Escribe un comentario antes de publicar');
-                return;
-            }
-
-            try {
-                if (submitBtn) submitBtn.disabled = true;
-                await _API.createToolComment(toolId, { contenido });
-                Toast.success('Comentario publicado');
-                await this.render(toolId);
-            } catch (error) {
-                Toast.error(error.message || 'No se pudo publicar el comentario');
-            } finally {
-                if (submitBtn) submitBtn.disabled = false;
-            }
-        });
-    },
-
-    setupCommentActions(toolId) {
-        const section = _DOM.$('#tool-comments-section');
-        if (!section) return;
-
-        const currentUsername = _Auth.getUser()?.username;
-        const editButtons = section.querySelectorAll('[data-comment-action="edit"]');
-        const deleteButtons = section.querySelectorAll('[data-comment-action="delete"]');
-
-        editButtons.forEach((button) => {
-            button.addEventListener('click', async () => {
-                const commentId = button.dataset.commentId;
-                const currentContent = button.dataset.commentContent || '';
-                const nextContent = window.prompt('Edita tu comentario', currentContent);
-
-                if (nextContent === null) return;
-
-                const contenido = nextContent.trim();
-                if (!contenido) {
-                    Toast.error('El comentario no puede estar vacío');
-                    return;
-                }
-
-                try {
-                    button.disabled = true;
-                    await _API.updateToolComment(toolId, commentId, { contenido });
-                    Toast.success('Comentario actualizado');
-                    await this.render(toolId);
-                } catch (error) {
-                    Toast.error(error.message || 'No se pudo actualizar el comentario');
-                } finally {
-                    button.disabled = false;
-                }
-            });
-        });
-
-        deleteButtons.forEach((button) => {
-            button.addEventListener('click', async () => {
-                const commentId = button.dataset.commentId;
-                const confirmed = window.confirm('¿Eliminar tu comentario?');
-                if (!confirmed) return;
-
-                try {
-                    button.disabled = true;
-                    await _API.deleteToolComment(toolId, commentId);
-                    Toast.success('Comentario eliminado');
-                    await this.render(toolId);
-                } catch (error) {
-                    Toast.error(error.message || 'No se pudo eliminar el comentario');
-                } finally {
-                    button.disabled = false;
-                }
-            });
-        });
-    },
-
-    async loadToolComments(toolId) {
-        const section = _DOM.$('#tool-comments-section');
-        if (!section) return;
-
-        try {
-            const data = await _API.getToolComments(toolId);
-            const comments = data.comments || data.data || [];
-            const currentUsername = _Auth.getUser()?.username || '';
-
-            const skeleton = section.querySelector('.tool-comments-skeleton');
-            if (skeleton) skeleton.remove();
-
-            const authNote = _Auth.isAuthenticated()
-                ? ''
-                : `
-                    <div class="alert alert-info mb-3">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Inicia sesión para publicar un comentario.
-                    </div>
-                `;
-
-            const formHtml = _Auth.isAuthenticated()
-                ? `
-                    <form id="tool-comment-form" class="comment-form mb-4">
-                        <div class="mb-3">
-                            <label for="comment-content" class="form-label">Tu comentario</label>
-                            <textarea id="comment-content" class="form-control" rows="4" maxlength="500" placeholder="Comparte tu opinión sobre esta herramienta..."></textarea>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                            <small class="text-muted">Máximo 500 caracteres</small>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send me-1"></i> Publicar
-                            </button>
-                        </div>
-                    </form>
-                `
-                : '';
-
-            const commentsMarkup = comments.length
-                ? comments.map((comment) => {
-                    const isOwner = currentUsername && comment.autor === currentUsername;
-                    const actionsMarkup = isOwner
-                        ? `
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Acciones del comentario">
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-secondary"
-                                    data-comment-action="edit"
-                                    data-comment-id="${comment.id}"
-                                    data-comment-content="${_Utils.escapeHtml(comment.contenido || '')}"
-                                >
-                                    <i class="bi bi-pencil me-1"></i> Editar
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn-outline-danger"
-                                    data-comment-action="delete"
-                                    data-comment-id="${comment.id}"
-                                >
-                                    <i class="bi bi-trash me-1"></i> Eliminar
-                                </button>
-                            </div>
-                        `
-                        : '<span class="badge text-bg-light">Opinión</span>';
-
-                    return `
-                    <article class="comment-item">
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="comment-author">${_Utils.escapeHtml(comment.autor || 'Usuario')}</div>
-                                <div class="comment-meta text-muted small">${_Utils.formatRelativeTime(comment.fecha_creacion)}</div>
-                            </div>
-                            ${actionsMarkup}
-                        </div>
-                        <p class="comment-content mb-0">${_Utils.escapeHtml(comment.contenido || '')}</p>
-                    </article>
-                    `;
-                }).join('')
-                : '<p class="text-muted mb-0">Todavía no hay comentarios para esta herramienta.</p>';
-
-            section.innerHTML = `
-                ${authNote}
-                ${formHtml}
-                <div class="comment-list d-grid gap-3">${commentsMarkup}</div>
-            `;
-
-            if (currentUsername) {
-                this.setupCommentActions(toolId);
-            }
-        } catch (error) {
-            const skeleton = section.querySelector('.tool-comments-skeleton');
-            if (skeleton) {
-                skeleton.innerHTML = `
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Comentarios no disponibles
-                    </div>
-                `;
-            }
-        }
     }
 };
 
@@ -1823,8 +1105,6 @@ const ListView = {
             // Load tags
             const tagsData = await _API.getTags();
             _state.tags = tagsData.tags || tagsData || [];
-            TagFilter.render(_state.tags);
-            YearFilter.render();
             
             // Load tools
             await this.loadTools();
@@ -1884,8 +1164,7 @@ const ListView = {
             });
             grid.appendChild(emptyMsg);
         } else {
-            const sortedTools = sortTools(_state.tools);
-            sortedTools.forEach((tool, index) => {
+            _state.tools.forEach((tool, index) => {
                 const card = ToolCard.render(tool);
                 const cardElement = card.querySelector('.tool-card');
                 cardElement.style.animationDelay = `${index * 0.05}s`;
@@ -1952,8 +1231,6 @@ const ListView = {
     setupEventListeners() {
         const searchInput = _DOM.$('#search-input');
         const categoryFilter = _DOM.$('#category-filter');
-        const tagFilter = _DOM.$('#tag-filter');
-        const yearFilter = _DOM.$('#year-filter');
         
         if (searchInput) {
             searchInput.addEventListener('input', _Utils.debounce((e) => {
@@ -1966,22 +1243,6 @@ const ListView = {
         if (categoryFilter) {
             categoryFilter.addEventListener('change', (e) => {
                 _state.filters.category = e.target.value;
-                _state.filters.page = 1;
-                this.loadTools();
-            });
-        }
-
-        if (tagFilter) {
-            tagFilter.addEventListener('change', (e) => {
-                _state.filters.tag = e.target.value;
-                _state.filters.page = 1;
-                this.loadTools();
-            });
-        }
-
-        if (yearFilter) {
-            yearFilter.addEventListener('change', (e) => {
-                _state.filters.anio = e.target.value;
                 _state.filters.page = 1;
                 this.loadTools();
             });
@@ -2029,8 +1290,6 @@ const ListView = {
                 _state.filters.favorito = false;
                 _state.filters.search = '';
                 _state.filters.category = '';
-                _state.filters.tag = '';
-                _state.filters.anio = '';
                 _state.filters.page = 1;
                 
                 // Clear URL params
@@ -2040,48 +1299,8 @@ const ListView = {
                 
                 const searchInput = _DOM.$('#search-input');
                 const categoryFilter = _DOM.$('#category-filter');
-                const tagFilter = _DOM.$('#tag-filter');
-                const yearFilter = _DOM.$('#year-filter');
                 if (searchInput) searchInput.value = '';
                 if (categoryFilter) categoryFilter.value = '';
-                if (tagFilter) tagFilter.value = '';
-                if (yearFilter) yearFilter.value = '';
-                
-                // Reset sorting
-                const sortField = _DOM.$('#sortField');
-                const sortIcon = _DOM.$('#sortIcon');
-                if (sortField) sortField.value = 'nombre';
-                _sortState.sortField = 'nombre';
-                _sortState.sortDirection = 'asc';
-                if (sortIcon) {
-                    sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
-                }
-            });
-        }
-        
-        // Sorting controls
-        const sortFieldEl = _DOM.$('#sortField');
-        const sortToggleEl = _DOM.$('#sortToggle');
-        
-        if (sortFieldEl) {
-            sortFieldEl.addEventListener('change', (e) => {
-                _sortState.sortField = e.target.value;
-                this.render();
-            });
-        }
-        
-        if (sortToggleEl) {
-            sortToggleEl.addEventListener('click', () => {
-                _sortState.sortDirection = _sortState.sortDirection === 'asc' ? 'desc' : 'asc';
-                const sortIcon = _DOM.$('#sortIcon');
-                if (sortIcon) {
-                    if (_sortState.sortDirection === 'asc') {
-                        sortIcon.innerHTML = '<path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
-                    } else {
-                        sortIcon.innerHTML = '<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>';
-                    }
-                }
-                this.render();
             });
         }
     }
@@ -2120,12 +1339,8 @@ const App = {
     },
 
     init() {
-        initThemeToggle();
-
         // Setup auth UI in navbar
         this._setupAuthNav();
-
-        const hasVueCatalogue = !!_DOM.$('#catalogue-vue-root');
 
         // Check for favorites filter in URL
         const favoritosParam = _Utils.getQueryParam('favoritos');
@@ -2144,19 +1359,12 @@ const App = {
         if (_state.isDetailMode) {
             const toolId = _Utils.getQueryParam('id');
             if (toolId) {
-                // Initialize modal and form handlers for detail page
-                Modal.init();
-                ToolForm.setupEventListeners();
                 DetailView.render(toolId);
             } else {
                 window.location.href = 'index.html';
             }
-        } else if (!hasVueCatalogue) {
-            ListView.init();
         } else {
-            Modal.init();
-            ToolForm.setupEventListeners();
-            // Vue owns the catalogue/home island in E9.
+            ListView.init();
         }
     }
 };

@@ -5,23 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DevToolsHub - Catálogo de herramientas de desarrollo">
     <title>DevToolsHub - Herramientas de Desarrollo</title>
-
-    <script>
-        (function () {
-            const themeKey = 'devtoolshub_theme';
-            const storedTheme = (() => {
-                try { return localStorage.getItem(themeKey); } catch { return null; }
-            })();
-            const preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : preferredTheme;
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            document.documentElement.style.colorScheme = theme;
-        })();
-    </script>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
     
@@ -49,12 +35,6 @@
                     <li class="nav-item">
                         <a href="?favoritos=true" class="nav-link" id="nav-favorites">Favoritos</a>
                     </li>
-                    <li class="nav-item ms-lg-2 d-flex align-items-center">
-                        <button type="button" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-2 theme-toggle-btn" data-theme-toggle>
-                            <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
-                            <span data-theme-label>Tema oscuro</span>
-                        </button>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -63,21 +43,64 @@
     <!-- Main Content -->
     <main class="py-4">
         <div class="container">
-            <div id="catalogue-vue-root">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
+            <!-- Search Section -->
+            <section class="search-section mb-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-md">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                            </span>
+                            <input 
+                                type="search" 
+                                id="search-input" 
+                                class="form-control" 
+                                placeholder="Buscar herramientas..."
+                                autocomplete="off"
+                                aria-label="Buscar herramientas"
+                            >
+                        </div>
                     </div>
-                    <p class="mt-2 text-muted">Cargando catálogo...</p>
+                    <div class="col-12 col-sm-auto col-md-auto">
+                        <select id="category-filter" class="form-select" aria-label="Filtrar por categoría">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-auto">
+                        <button id="btn-add-tool" class="btn btn-success w-100">
+                            <span class="me-1">+</span>
+                            <span class="btn-text">Agregar</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
+                <div class="text-muted small" aria-live="polite">
+                    <span id="results-count">Cargando herramientas...</span>
+                </div>
+            </section>
+
+            <!-- Tools Grid -->
+            <section class="tools-section mb-4" aria-label="Catálogo de herramientas">
+                <div id="tools-grid" class="row g-3">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Cargando herramientas...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pagination -->
+            <nav id="pagination" aria-label="Paginación"></nav>
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="bg-white border-top py-3 mt-auto">
         <div class="container text-center text-muted small">
-            <p class="mb-0">&copy; 2026 DevToolsHub. Gestión de herramientas de desarrollo. <span class="badge text-bg-warning text-dark ms-2">Sync test</span></p>
+            <p class="mb-0">&copy; 2026 DevToolsHub. Gestión de herramientas de desarrollo.</p>
         </div>
     </footer>
 
@@ -108,7 +131,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="tool-description" class="form-label">Descripción <span class="text-danger">*</span></label>
+                            <label for="tool-description" class="form-label">Descripción</label>
                             <textarea 
                                 id="tool-description" 
                                 name="descripcion"
@@ -116,9 +139,7 @@
                                 rows="3"
                                 maxlength="500"
                                 placeholder="Breve descripción de la herramienta..."
-                                required
                             ></textarea>
-                            <div class="invalid-feedback" id="error-descripcion"></div>
                         </div>
 
                         <div class="mb-3">
@@ -148,36 +169,6 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Imagen de herramienta</label>
-                            <!-- Current image preview -->
-                            <div id="current-image-preview" class="mb-2 d-none">
-                                <div class="position-relative d-inline-block">
-                                    <img id="current-image" src="" alt="Imagen actual" class="rounded" style="max-width: 150px; max-height: 150px;">
-                                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" id="btn-delete-image" title="Eliminar imagen">
-                                        ×
-                                    </button>
-                                </div>
-                                <p class="text-muted small mt-1">Imagen actual</p>
-                            </div>
-                            <!-- File input for new image -->
-                            <div class="input-group">
-                                <input 
-                                    type="file" 
-                                    id="tool-image" 
-                                    name="image"
-                                    class="form-control"
-                                    accept="image/*"
-                                >
-                            </div>
-                            <div class="form-text">Sube una imagen (jpg, png, gif, webp, svg) - Máximo 5MB</div>
-                            <!-- New image preview -->
-                            <div id="new-image-preview" class="mt-2 d-none">
-                                <img id="new-image" src="" alt="Nueva imagen" class="rounded" style="max-width: 150px; max-height: 150px;">
-                                <p class="text-muted small mt-1">Nueva imagen seleccionada</p>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
                             <label for="tool-rating" class="form-label">Rating (1-5)</label>
                             <div class="d-flex align-items-center gap-3">
                                 <input 
@@ -194,12 +185,10 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="tool-categories" class="form-label">Categoría <span class="text-danger">*</span></label>
-                            <select id="tool-categories" name="categorias" class="form-select" required>
-                                <option value="">Selecciona una categoría</option>
+                            <label for="tool-categories" class="form-label">Categorías</label>
+                            <select id="tool-categories" name="categorias" class="form-select" multiple size="4">
                             </select>
-                            <div class="form-text">Selecciona una categoría para la herramienta</div>
-                            <div class="invalid-feedback" id="error-categorias"></div>
+                            <div class="form-text">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples</div>
                         </div>
 
                         <div class="mb-3">
@@ -298,22 +287,10 @@
                     </div>
                 </div>
                 <div class="card-body pt-2">
-                    <div class="text-uppercase text-muted small fw-semibold mb-1">Nombre</div>
                     <h3 class="card-title h6 tool-name mb-2"></h3>
-                    <ul class="list-unstyled small mb-2">
-                        <li class="mb-1">
-                            <span class="fw-semibold">Categoría:</span>
-                            <span class="tool-primary-category"></span>
-                        </li>
-                        <li class="mb-1 text-muted">
-                            <span class="fw-semibold text-body">Descripción:</span>
-                            <span class="tool-description"></span>
-                        </li>
-                        <li>
-                            <span class="fw-semibold">Tags:</span>
-                            <span class="tool-tags-summary"></span>
-                        </li>
-                    </ul>
+                    <p class="card-text text-muted small tool-description"></p>
+                    <div class="tool-categories d-flex flex-wrap gap-1 mb-2"></div>
+                    <div class="tool-tags d-flex flex-wrap gap-1"></div>
                 </div>
                 <div class="card-footer bg-transparent border-0 pb-3">
                     <div class="d-flex gap-2">
@@ -332,10 +309,12 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/validation.js"></script>
+    
+    <!-- Tag Management Scripts -->
+    <script src="js/api/tagsApi.js"></script>
+    <script src="js/components/tagManager.js"></script>
     
     <script src="js/app.js" type="module"></script>
-    <script src="js/pages/catalogue-vue.js" type="module"></script>
 
     <!-- Registro Service Worker -->
     <script>
