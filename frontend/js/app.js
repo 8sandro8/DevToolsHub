@@ -1305,6 +1305,40 @@ const DetailView = {
             
             card.appendChild(descSection);
             
+            // Wikipedia section (if external data exists)
+            if (tool.external_source === 'Wikipedia' && tool.external_summary) {
+                const wikiSection = _DOM.createElement('div', 'detail-section wikipedia-section');
+                const wikiHeader = _DOM.createElement('div', 'd-flex justify-content-between align-items-center mb-2');
+                const wikiTitle = _DOM.createElement('h3', 'detail-section-title mb-0', {
+                    textContent: 'Acerca de'
+                });
+                const wikiBadge = _DOM.createElement('span', 'badge bg-secondary', {
+                    textContent: 'Fuente: Wikipedia'
+                });
+                wikiHeader.appendChild(wikiTitle);
+                wikiHeader.appendChild(wikiBadge);
+                wikiSection.appendChild(wikiHeader);
+                
+                const wikiContent = _DOM.createElement('div', 'wikipedia-content');
+                if (tool.external_title) {
+                    wikiContent.innerHTML += `
+                        <h5 class="wiki-title">${_Utils.escapeHtml(tool.external_title)}</h5>
+                    `;
+                }
+                wikiContent.innerHTML += `
+                    <p class="wiki-summary mb-3">${_Utils.escapeHtml(tool.external_summary)}</p>
+                `;
+                if (tool.external_url) {
+                    wikiContent.innerHTML += `
+                        <a href="${tool.external_url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-wikipedia me-1"></i> Leer en Wikipedia
+                        </a>
+                    `;
+                }
+                wikiSection.appendChild(wikiContent);
+                card.appendChild(wikiSection);
+            }
+            
             // Website section (if URL exists)
             if (tool.url) {
                 const urlSection = _DOM.createElement('div', 'detail-section');

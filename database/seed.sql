@@ -45,3 +45,9 @@ INSERT INTO tool_category (tool_id, category_id) VALUES (5, 8);
 
 -- Figma -> Design
 INSERT INTO tool_category (tool_id, category_id) VALUES (6, 6);
+
+-- ============================================
+-- USUARIO POR DEFECTO (Sandro)
+-- ============================================
+INSERT INTO user (username, password_hash, role) VALUES 
+    ('Sandro', '$2b$10$Lb1KnPHfoRQQtCaHmEYTAOqR20efR5FnDe2hMwDzrEtREKeObVtYq', 'admin');
