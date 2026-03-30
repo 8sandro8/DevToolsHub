@@ -3,6 +3,41 @@
  * UI component for managing tags with CRUD operations
  */
 
+// DOM utilities - inline to avoid dependency on _DOM from app.js
+const _TM = {
+    $(selector) {
+        return document.querySelector(selector);
+    },
+    $$(selector) {
+        return document.querySelectorAll(selector);
+    },
+    createElement(tag, className = '', attributes = {}) {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        
+        Object.entries(attributes).forEach(([key, value]) => {
+            if (key === 'textContent') {
+                element.textContent = value;
+            } else if (key === 'innerHTML') {
+                element.innerHTML = value;
+            } else if (key.startsWith('data-')) {
+                element.setAttribute(key, value);
+            } else if (key.startsWith('on') && typeof value === 'function') {
+                element.addEventListener(key.substring(2).toLowerCase(), value);
+            } else {
+                element.setAttribute(key, value);
+            }
+        });
+        
+        return element;
+    },
+    clearElement(element) {
+        while (element.firstChild) {
+            element.removeChild(element.firstChild);
+        }
+    }
+};
+
 const TagManager = {
     tags: [],
     selectedTags: [],
@@ -32,11 +67,11 @@ const TagManager = {
      * @returns {HTMLElement} Container with tag pills
      */
     renderTagPills(tags) {
-        const container = _DOM.createElement('div', 'tool-tags d-flex flex-wrap gap-1');
+        const container = _TM.createElement('div', 'tool-tags d-flex flex-wrap gap-1');
         
         if (tags && tags.length > 0) {
             tags.forEach(tag => {
-                const pill = _DOM.createElement('span', 'tag-pill', {
+                const pill = _TM.createElement('span', 'tag-pill', {
                     textContent: tag.nombre,
                     style: `background-color: ${tag.color || '#6c757d'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;`
                 });
@@ -52,10 +87,10 @@ const TagManager = {
      * @param {Array} selectedIds - Array of selected tag IDs
      */
     renderTagSelect(selectedIds = []) {
-        const container = _DOM.$('#tag-select-container');
+        const container = _TM.$('#tag-select-container');
         if (!container) return;
 
-        _DOM.clearElement(container);
+        _TM.clearElement(container);
 
         if (this.tags.length === 0) {
             container.innerHTML = '<p class="text-muted small mb-0">No hay tags disponibles</p>';
@@ -63,9 +98,9 @@ const TagManager = {
         }
 
         this.tags.forEach(tag => {
-            const wrapper = _DOM.createElement('div', 'form-check form-check-inline');
+            const wrapper = _TM.createElement('div', 'form-check form-check-inline');
             
-            const checkbox = _DOM.createElement('input', 'form-check-input tag-checkbox', {
+            const checkbox = _TM.createElement('input', 'form-check-input tag-checkbox', {
                 type: 'checkbox',
                 id: `tag-${tag.id}`,
                 value: tag.id
@@ -75,7 +110,7 @@ const TagManager = {
                 checkbox.checked = true;
             }
 
-            const label = _DOM.createElement('label', 'form-check-label', {
+            const label = _TM.createElement('label', 'form-check-label', {
                 for: `tag-${tag.id}`,
                 textContent: tag.nombre,
                 style: `cursor: pointer; color: ${tag.color}; font-weight: 500;`
@@ -92,7 +127,7 @@ const TagManager = {
      * @returns {Array<number>} Array of selected tag IDs
      */
     getSelectedTags() {
-        const checkboxes = _DOM.$$('.tag-checkbox:checked');
+        const checkboxes = _TM.$$('.tag-checkbox:checked');
         return Array.from(checkboxes).map(cb => parseInt(cb.value, 10));
     },
 
@@ -103,7 +138,7 @@ const TagManager = {
         await this.loadTags();
         this.renderTagList();
         
-        const modalEl = _DOM.$('#tag-management-modal');
+        const modalEl = _TM.$('#tag-management-modal');
         if (modalEl && bootstrap.Modal) {
             const modal = new bootstrap.Modal(modalEl);
             modal.show();
@@ -114,10 +149,10 @@ const TagManager = {
      * Render the list of tags in the management modal
      */
     renderTagList() {
-        const listContainer = _DOM.$('#tag-list');
+        const listContainer = _TM.$('#tag-list');
         if (!listContainer) return;
 
-        _DOM.clearElement(listContainer);
+        _TM.clearElement(listContainer);
 
         if (this.tags.length === 0) {
             listContainer.innerHTML = '<p class="text-muted text-center py-3">No hay tags todavía</p>';
@@ -125,29 +160,29 @@ const TagManager = {
         }
 
         this.tags.forEach(tag => {
-            const item = _DOM.createElement('div', 'tag-list-item d-flex justify-content-between align-items-center py-2 border-bottom');
+            const item = _TM.createElement('div', 'tag-list-item d-flex justify-content-between align-items-center py-2 border-bottom');
             
-            const info = _DOM.createElement('div', 'd-flex align-items-center gap-2');
+            const info = _TM.createElement('div', 'd-flex align-items-center gap-2');
             
-            const colorDot = _DOM.createElement('span', '', {
+            const colorDot = _TM.createElement('span', '', {
                 style: `width: 12px; height: 12px; background-color: ${tag.color}; border-radius: 50%; display: inline-block;`
             });
             
-            const name = _DOM.createElement('span', '', {
+            const name = _TM.createElement('span', '', {
                 textContent: tag.nombre
             });
             
             info.appendChild(colorDot);
             info.appendChild(name);
             
-            const actions = _DOM.createElement('div', '');
+            const actions = _TM.createElement('div', '');
             
-            const editBtn = _DOM.createElement('button', 'btn btn-sm btn-outline-secondary me-1', {
+            const editBtn = _TM.createElement('button', 'btn btn-sm btn-outline-secondary me-1', {
                 textContent: 'Editar',
                 onclick: () => this.openEditTagModal(tag)
             });
             
-            const deleteBtn = _DOM.createElement('button', 'btn btn-sm btn-outline-danger', {
+            const deleteBtn = _TM.createElement('button', 'btn btn-sm btn-outline-danger', {
                 textContent: 'Eliminar',
                 onclick: () => this.confirmDeleteTag(tag)
             });
@@ -166,21 +201,21 @@ const TagManager = {
      * Open modal to create a new tag
      */
     openCreateTagModal() {
-        const nameInput = _DOM.$('#tag-name-input');
-        const colorInput = _DOM.$('#tag-color-input');
-        const modalTitle = _DOM.$('#tag-modal-title');
+        const nameInput = _TM.$('#tag-name-input');
+        const colorInput = _TM.$('#tag-color-input');
+        const modalTitle = _TM.$('#tag-modal-title');
         
         if (nameInput) nameInput.value = '';
         if (colorInput) colorInput.value = '#6c757d';
         if (modalTitle) modalTitle.textContent = 'Nuevo Tag';
         
         // Store current editing tag ID
-        const saveBtn = _DOM.$('#btn-save-tag');
+        const saveBtn = _TM.$('#btn-save-tag');
         if (saveBtn) {
             saveBtn.dataset.mode = 'create';
         }
         
-        const modalEl = _DOM.$('#tag-form-modal');
+        const modalEl = _TM.$('#tag-form-modal');
         if (modalEl && bootstrap.Modal) {
             const modal = new bootstrap.Modal(modalEl);
             modal.show();
@@ -192,22 +227,22 @@ const TagManager = {
      * @param {Object} tag - Tag object to edit
      */
     openEditTagModal(tag) {
-        const nameInput = _DOM.$('#tag-name-input');
-        const colorInput = _DOM.$('#tag-color-input');
-        const modalTitle = _DOM.$('#tag-modal-title');
+        const nameInput = _TM.$('#tag-name-input');
+        const colorInput = _TM.$('#tag-color-input');
+        const modalTitle = _TM.$('#tag-modal-title');
         
         if (nameInput) nameInput.value = tag.nombre;
         if (colorInput) colorInput.value = tag.color || '#6c757d';
         if (modalTitle) modalTitle.textContent = 'Editar Tag';
         
         // Store current editing tag ID
-        const saveBtn = _DOM.$('#btn-save-tag');
+        const saveBtn = _TM.$('#btn-save-tag');
         if (saveBtn) {
             saveBtn.dataset.mode = 'edit';
             saveBtn.dataset.tagId = tag.id;
         }
         
-        const modalEl = _DOM.$('#tag-form-modal');
+        const modalEl = _TM.$('#tag-form-modal');
         if (modalEl && bootstrap.Modal) {
             const modal = new bootstrap.Modal(modalEl);
             modal.show();
@@ -218,9 +253,9 @@ const TagManager = {
      * Save a tag (create or update)
      */
     async saveTag() {
-        const nameInput = _DOM.$('#tag-name-input');
-        const colorInput = _DOM.$('#tag-color-input');
-        const saveBtn = _DOM.$('#btn-save-tag');
+        const nameInput = _TM.$('#tag-name-input');
+        const colorInput = _TM.$('#tag-color-input');
+        const saveBtn = _TM.$('#btn-save-tag');
         
         if (!nameInput || !colorInput || !saveBtn) return;
         
@@ -245,7 +280,7 @@ const TagManager = {
             }
             
             // Close modal
-            const modalEl = _DOM.$('#tag-form-modal');
+            const modalEl = _TM.$('#tag-form-modal');
             if (modalEl && bootstrap.Modal) {
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
@@ -293,28 +328,28 @@ const TagManager = {
      */
     setupEventListeners() {
         // Open tag management button
-        const manageBtn = _DOM.$('#btn-manage-tags');
+        const manageBtn = _TM.$('#btn-manage-tags');
         if (manageBtn) {
             manageBtn.addEventListener('click', () => this.openTagModal());
         }
 
         // Create new tag button
-        const createBtn = _DOM.$('#btn-create-tag');
+        const createBtn = _TM.$('#btn-create-tag');
         if (createBtn) {
             createBtn.addEventListener('click', () => this.openCreateTagModal());
         }
 
         // Save tag button
-        const saveBtn = _DOM.$('#btn-save-tag');
+        const saveBtn = _TM.$('#btn-save-tag');
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveTag());
         }
 
         // Color picker preview
-        const colorInput = _DOM.$('#tag-color-input');
+        const colorInput = _TM.$('#tag-color-input');
         if (colorInput) {
             colorInput.addEventListener('input', (e) => {
-                const preview = _DOM.$('#tag-color-preview');
+                const preview = _TM.$('#tag-color-preview');
                 if (preview) {
                     preview.style.backgroundColor = e.target.value;
                 }
