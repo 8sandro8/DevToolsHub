@@ -1181,7 +1181,7 @@ const ListView = {
     
     setupCardActions() {
         // Favorite buttons
-        const favoriteBtns = _DOM.$$('.btn-favorite');
+        const favoriteBtns = _DOM.$$('.btn-favorite-action');
         favoriteBtns.forEach(btn => {
             btn.onclick = async (e) => {
                 e.preventDefault();
@@ -1197,7 +1197,7 @@ const ListView = {
         });
         
         // Edit buttons
-        const editBtns = _DOM.$$('.btn-edit');
+        const editBtns = _DOM.$$('.btn-edit-action');
         editBtns.forEach(btn => {
             btn.onclick = async (e) => {
                 e.preventDefault();
