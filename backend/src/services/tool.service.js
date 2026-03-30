@@ -4,6 +4,9 @@
  */
 
 const ToolRepository = require('../repositories/tool.repository');
+const ExternalCatalogService = require('./external-catalog.service');
+
+const externalCatalog = new ExternalCatalogService();
 
 class ToolService {
     constructor(db) {
@@ -14,13 +17,21 @@ class ToolService {
         return this.repository.findWithFilters(filters);
     }
 
-    getById(id) {
+    async getById(id) {
         const tool = this.repository.findById(id);
         if (!tool) return null;
         
         tool.categories = this.repository.getCategories(id);
         tool.tags = this.repository.getTags(id);
-        return tool;
+
+        // Enrich with Wikipedia data (silently handle errors)
+        try {
+            const enrichedTool = await externalCatalog.enrichTool(tool);
+            return enrichedTool || tool;
+        } catch (error) {
+            // If Wikipedia fails, return local data only
+            return tool;
+        }
     }
 
     create(data) {

@@ -12,6 +12,7 @@ const createToolRoutes = require('./routes/tool.routes');
 const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
 const createAuthRoutes = require('./routes/auth.routes');
+const createGitHubRoutes = require('./routes/github.routes');
 const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
 
@@ -78,13 +79,17 @@ app.get('/api', (req, res) => {
             auth: '/api/auth',
             tools: '/api/tools',
             categories: '/api/categories',
-            tags: '/api/tags'
+            tags: '/api/tags',
+            github: '/api/github/:id'
         }
     });
 });
 
 // Auth routes (public — no middleware)
 app.use('/api/auth', createAuthRoutes(db));
+
+// GitHub routes (public — no auth needed for reading stats)
+app.use('/api/github', createGitHubRoutes(db));
 
 // Protected mutation middleware — applies only to POST, PUT, PATCH, DELETE
 const mutationMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];

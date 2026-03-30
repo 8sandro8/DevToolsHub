@@ -1333,7 +1333,7 @@ const App = {
         } else {
             const li = document.createElement('li');
             li.className = 'nav-item ms-2';
-            li.innerHTML = `<a href="/login" class="btn btn-primary btn-sm">Iniciar sesión</a>`;
+            li.innerHTML = `<a href="login.html" class="btn btn-primary btn-sm">Iniciar sesión</a>`;
             navList.appendChild(li);
         }
     },

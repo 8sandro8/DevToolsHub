@@ -17,8 +17,14 @@ class ToolController {
                 categoria: req.query.categoria,
                 favorito: req.query.favorito !== undefined ? req.query.favorito === 'true' : undefined,
                 page: parseInt(req.query.page) || 1,
-                limit: parseInt(req.query.limit) || 10
+                limit: parseInt(req.query.limit) || 10,
+                ordenar: req.query.ordenar?.toLowerCase() || 'desc'
             };
+
+            // Validar valores permitidos
+            if (!['asc', 'desc'].includes(filters.ordenar)) {
+                filters.ordenar = 'desc';
+            }
 
             const result = this.service.getAll(filters);
             res.json(result);
@@ -27,9 +33,9 @@ class ToolController {
         }
     }
 
-    getById = (req, res, next) => {
+    getById = async (req, res, next) => {
         try {
-            const tool = this.service.getById(req.params.id);
+            const tool = await this.service.getById(req.params.id);
             if (!tool) {
                 return res.status(404).json({ error: 'Herramienta no encontrada' });
             }

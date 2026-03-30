@@ -698,3 +698,41 @@ body {
         max-width: var(--container-max-width);
     }
 }
+
+/* ============================================
+   Password Toggle Button
+   ============================================ */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper .form-control {
+    padding-right: 45px;
+}
+
+.password-wrapper .btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    padding: 4px 8px;
+    cursor: pointer;
+    z-index: 5;
+    transition: color var(--transition-fast);
+}
+
+.password-wrapper .btn-toggle-password:hover {
+    color: var(--color-primary);
+}
+
+.password-wrapper .btn-toggle-password:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.password-wrapper .btn-toggle-password i {
+    font-size: 1.1rem;
+}

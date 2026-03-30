@@ -10,7 +10,7 @@ class ToolRepository extends BaseRepository {
         super(db, 'tool');
     }
 
-    findWithFilters({ buscar, categoria, favorito, page = 1, limit = 10 }) {
+    findWithFilters({ buscar, categoria, favorito, page = 1, limit = 10, ordenar = 'desc' }) {
         let sql = 'SELECT DISTINCT t.* FROM tool t';
         const params = [];
         const conditions = [];
@@ -47,8 +47,9 @@ class ToolRepository extends BaseRepository {
         const totalResult = this.db.prepare(countSql).get(...params);
         const total = totalResult?.total || 0;
 
-        // Paginación
-        sql += ' ORDER BY t.fecha_creacion DESC LIMIT ? OFFSET ?';
+        // Paginación y ordenación
+        const orden = ['asc', 'desc'].includes(ordenar.toLowerCase()) ? ordenar.toUpperCase() : 'DESC';
+        sql += ` ORDER BY t.fecha_creacion ${orden} LIMIT ? OFFSET ?`;
         params.push(limit, (page - 1) * limit);
 
         const tools = this.db.prepare(sql).all(...params);
