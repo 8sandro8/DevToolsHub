@@ -61,7 +61,8 @@ class GitHubController {
             const { id } = req.params;
 
             // Obtener la herramienta de la DB
-            const tool = this.toolService.getById(id);
+            const tool = await this.toolService.getById(id);
+            
             if (!tool) {
                 return res.status(404).json({
                     error: 'Herramienta no encontrada'

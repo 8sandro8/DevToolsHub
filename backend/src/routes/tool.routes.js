@@ -6,15 +6,20 @@
 const express = require('express');
 const router = express.Router();
 const ToolController = require('../controllers/tool.controller');
+const GitHubController = require('../controllers/github.controller');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 
 // Factory function que crea las rutas con el controller inicializado
 const createToolRoutes = (db) => {
     const toolController = new ToolController(db);
+    const githubController = new GitHubController(db);
 
     // GET /api/tools - Listar todas las herramientas
     router.get('/', toolController.getAll.bind(toolController));
+
+    // GET /api/tools/:id/github-stats - Obtener stats de GitHub para una herramienta
+    router.get('/:id/github-stats', githubController.getGitHubStats.bind(githubController));
 
     // GET /api/tools/:id - Obtener herramienta por ID
     router.get('/:id', toolController.getById.bind(toolController));
