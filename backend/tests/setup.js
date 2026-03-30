@@ -5,10 +5,6 @@
 
 require('dotenv').config();
 
-if (typeof jest !== 'undefined' && typeof jest.setTimeout === 'function') {
-    jest.setTimeout(30000);
-}
-
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
@@ -17,7 +13,7 @@ const fs = require('fs');
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_for_tests';
 
 // Store the schema for reuse
-const schemaPath = path.resolve(__dirname, '..', '..', 'database', 'schema.sql');
+const schemaPath = path.join(__dirname, '..', '..', 'database', 'schema.sql');
 let schemaContent = '';
 
 // Load schema once
@@ -75,24 +71,11 @@ function createTablesManually(db) {
             descripcion TEXT,
             url TEXT,
             logo_url TEXT,
-            image_url TEXT DEFAULT NULL,
             rating INTEGER DEFAULT 0 CHECK(rating >= 0 AND rating <= 5),
             es_favorito INTEGER DEFAULT 0,
             es_archivado INTEGER DEFAULT 0,
             fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
             fecha_actualizacion TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    `);
-
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS tool_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tool_id INTEGER NOT NULL,
-            accion TEXT NOT NULL,
-            resumen TEXT NOT NULL,
-            detalles_json TEXT,
-            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
         )
     `);
     
@@ -101,7 +84,6 @@ function createTablesManually(db) {
         CREATE TABLE IF NOT EXISTS category (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL UNIQUE,
-            descripcion TEXT,
             color TEXT DEFAULT '#6b7280'
         )
     `);
@@ -137,17 +119,6 @@ function createTablesManually(db) {
         )
     `);
 
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS tool_comment (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tool_id INTEGER NOT NULL,
-            autor TEXT NOT NULL,
-            contenido TEXT NOT NULL,
-            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
-        )
-    `);
-
     // User table
     db.exec(`
         CREATE TABLE IF NOT EXISTS user (
@@ -162,9 +133,7 @@ function createTablesManually(db) {
     // Indices
     db.exec(`CREATE INDEX IF NOT EXISTS idx_tool_nombre ON tool(nombre)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_tool_favorito ON tool(es_favorito)`);
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_tool_history_tool_id_fecha ON tool_history(tool_id, fecha_creacion DESC)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_category_nombre ON category(nombre)`);
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_tool_comment_tool_id_fecha ON tool_comment(tool_id, fecha_creacion DESC)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_user_username ON user(username)`);
 }
 
@@ -179,13 +148,6 @@ function createTestApp(db) {
 
     const app = express();
     app.use(cors());
-    app.use((req, res, next) => {
-        const contentType = req.headers['content-type'];
-        if (contentType && /^application\/json/i.test(contentType)) {
-            req.headers['content-type'] = 'application/json';
-        }
-        next();
-    });
     app.use(express.json());
     
     // Import routes
@@ -243,8 +205,6 @@ async function getAuthToken(app) {
  * Reset database - clear all data but keep schema
  */
 function resetDb(db) {
-    try { db.prepare('DELETE FROM tool_history').run(); } catch {}
-    try { db.prepare('DELETE FROM tool_comment').run(); } catch {}
     db.prepare('DELETE FROM tool_category').run();
     db.prepare('DELETE FROM tool').run();
     db.prepare('DELETE FROM category').run();

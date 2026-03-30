@@ -31,7 +31,7 @@ class AuthController {
                 return res.status(400).json({ error: 'password must be at least 6 characters' });
             }
 
-            const user = await this.authService.register(username.trim(), password.trim());
+            const user = await this.authService.register(username.trim(), password);
             return res.status(201).json(user);
         } catch (err) {
             if (err.statusCode) {
@@ -52,7 +52,7 @@ class AuthController {
                 return res.status(400).json({ error: 'username and password are required' });
             }
 
-            const result = await this.authService.login(username.trim(), password.trim());
+            const result = await this.authService.login(username.trim(), password);
             return res.status(200).json(result);
         } catch (err) {
             if (err.statusCode) {

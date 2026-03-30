@@ -6,21 +6,11 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
-const { DB_PATH } = require('./paths');
-// Schema/seed live at the project root, not inside backend/
-const SCHEMA_PATH = path.resolve(__dirname, '..', '..', '..', 'database', 'schema.sql');
-const SEED_PATH = path.resolve(__dirname, '..', '..', '..', 'database', 'seed.sql');
 
-const DEFAULT_CATEGORIES = [
-    ['API Testing', '#10b981'],
-    ['Code Editors', '#3b82f6'],
-    ['Version Control', '#8b5cf6'],
-    ['Documentation', '#f59e0b'],
-    ['Testing', '#ef4444'],
-    ['Design', '#ec4899'],
-    ['Database', '#06b6d4'],
-    ['DevOps', '#6366f1'],
-];
+// Database file path - configurable via environment
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', '..', 'data', 'devtools.db');
+const SCHEMA_PATH = path.join(__dirname, '..', '..', 'database', 'schema.sql');
+const SEED_PATH = path.join(__dirname, '..', '..', 'database', 'seed.sql');
 
 // Ensure data directory exists
 const dataDir = path.dirname(DB_PATH);
@@ -64,17 +54,6 @@ function seedDatabase(db) {
     if (!fs.existsSync(SEED_PATH)) {
         console.warn(`Seed file not found at ${SEED_PATH}, skipping seed`);
         return;
-    }
-
-    const categoryCount = db.prepare('SELECT COUNT(*) as count FROM category').get();
-    if (categoryCount.count === 0) {
-        const insertCategory = db.prepare('INSERT OR IGNORE INTO category (nombre, color) VALUES (?, ?)');
-        const insertCategories = db.transaction(() => {
-            DEFAULT_CATEGORIES.forEach(([nombre, color]) => insertCategory.run(nombre, color));
-        });
-
-        insertCategories();
-        console.log('Default categories seeded');
     }
     
     // Check if already seeded

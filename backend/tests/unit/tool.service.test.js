@@ -21,12 +21,12 @@ describe('ToolService', () => {
     });
 
     describe('getAll()', () => {
-        it('should return all tools with pagination when no filters', async () => {
+        it('should return all tools with pagination when no filters', () => {
             // Arrange
             fullSeed(db);
             
             // Act
-            const result = await service.getAll({});
+            const result = service.getAll({});
             
             // Assert
             expect(result).toHaveProperty('data');
@@ -36,23 +36,23 @@ describe('ToolService', () => {
             expect(result.data.length).toBeGreaterThan(0);
         });
 
-        it('should return only favorite tools when filtro favorito: true', async () => {
+        it('should return only favorite tools when filtro favorito: true', () => {
             // Arrange
             fullSeed(db);
             
             // Act
-            const result = await service.getAll({ favorito: true });
+            const result = service.getAll({ favorito: true });
             
             // Assert
             expect(result.data.every(t => t.es_favorito === 1)).toBe(true);
         });
 
-        it('should filter by search text if FTS5 is available', async () => {
+        it('should filter by search text if FTS5 is available', () => {
             // Arrange
             fullSeed(db);
             
             // Act - try searching for "code" (VS Code)
-            const result = await service.getAll({ buscar: 'code' });
+            const result = service.getAll({ buscar: 'code' });
             
             // Assert - may return empty if FTS5 not working in memory
             // This test documents the expected behavior
@@ -73,7 +73,6 @@ describe('ToolService', () => {
             expect(result.id).toBe(1);
             expect(result.nombre).toBe('VS Code');
             expect(result).toHaveProperty('categories');
-            expect(result).toHaveProperty('tags');
         });
 
         it('should return null when ID does not exist', () => {

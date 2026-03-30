@@ -23,17 +23,7 @@ CREATE TABLE IF NOT EXISTS tool (
 CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL UNIQUE,
-    descripcion TEXT,
     color TEXT DEFAULT '#6b7280'
-);
-
--- ============================================
--- TAGS
--- ============================================
-CREATE TABLE IF NOT EXISTS tag (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL UNIQUE,
-    color TEXT DEFAULT '#6c757d'
 );
 
 -- ============================================
@@ -45,26 +35,6 @@ CREATE TABLE IF NOT EXISTS tool_category (
     PRIMARY KEY (tool_id, category_id),
     FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS tool_tag (
-    tool_id INTEGER NOT NULL,
-    tag_id INTEGER NOT NULL,
-    PRIMARY KEY (tool_id, tag_id),
-    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE
-);
-
--- ============================================
--- COMENTARIOS / OPINIONES
--- ============================================
-CREATE TABLE IF NOT EXISTS tool_comment (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tool_id INTEGER NOT NULL,
-    autor TEXT NOT NULL,
-    contenido TEXT NOT NULL,
-    fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
 );
 
 -- ============================================
@@ -99,4 +69,3 @@ END;
 CREATE INDEX IF NOT EXISTS idx_tool_nombre ON tool(nombre);
 CREATE INDEX IF NOT EXISTS idx_tool_favorito ON tool(es_favorito);
 CREATE INDEX IF NOT EXISTS idx_category_nombre ON category(nombre);
-CREATE INDEX IF NOT EXISTS idx_tool_comment_tool_id_fecha ON tool_comment(tool_id, fecha_creacion DESC);
