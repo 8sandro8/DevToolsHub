@@ -1,253 +1,526 @@
 {
-  "info": {
-    "name": "DevToolsHub API",
-    "description": "Colección de requests para la API de DevToolsHub\n\nURL Base: {{baseUrl}}\n\nEsta colección incluye ejemplos para todos los endpoints del backend.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:4001/api",
-      "type": "string"
-    }
-  ],
-  "item": [
-    {
-      "name": "Health",
-      "item": [
-        {
-          "name": "Health Check",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/health",
-              "host": ["{{baseUrl}}", "health"]
-            },
-            "description": "Verifica el estado de la API"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Tools",
-      "item": [
-        {
-          "name": "Get All Tools",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/tools?buscar=&categoria=&favorito=&page=1&limit=10",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools"],
-              "query": [
-                {
-                  "key": "buscar",
-                  "value": "",
-                  "description": "Texto a buscar en nombre o descripción"
-                },
-                {
-                  "key": "categoria",
-                  "value": "",
-                  "description": "ID de categoría para filtrar"
-                },
-                {
-                  "key": "favorito",
-                  "value": "",
-                  "description": "Filtrar por favoritos (true/false)"
-                },
-                {
-                  "key": "page",
-                  "value": "1",
-                  "description": "Número de página"
-                },
-                {
-                  "key": "limit",
-                  "value": "10",
-                  "description": "Resultados por página"
-                }
-              ]
-            },
-            "description": "Obtiene todas las herramientas con filtros opcionales"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Tool by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
-            "description": "Obtiene una herramienta específica por su ID"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Tool",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/tools",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools"]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"VS Code\",\n  \"descripcion\": \"Editor de código fuente gratuito y multiplataforma desarrollado por Microsoft\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 5,\n  \"es_favorito\": true,\n  \"categories\": [1, 2]\n}"
-            },
-            "description": "Crea una nueva herramienta"
-          },
-          "response": []
-        },
-        {
-          "name": "Update Tool",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"VS Code Updated\",\n  \"descripcion\": \"Descripción actualizada del editor\",\n  \"url\": \"https://code.visualstudio.com/\",\n  \"rating\": 4,\n  \"es_favorito\": false,\n  \"categories\": [1]\n}"
-            },
-            "description": "Actualiza una herramienta existente"
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Tool",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/tools/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id"]
-            },
-            "description": "Archiva (soft delete) una herramienta"
-          },
-          "response": []
-        },
-        {
-          "name": "Toggle Favorite",
-          "request": {
-            "method": "PATCH",
-            "url": {
-              "raw": "{{baseUrl}}/tools/:id/favorito",
-              "host": ["{{baseUrl}}"],
-              "path": ["tools", ":id", "favorito"]
-            },
-            "description": "Alterna el estado de favorito de una herramienta"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Categories",
-      "item": [
-        {
-          "name": "Get All Categories",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
-            },
-            "description": "Obtiene todas las categorías"
-          },
-          "response": []
-        },
-        {
-          "name": "Get Category by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
-            "description": "Obtiene una categoría específica por su ID"
-          },
-          "response": []
-        },
-        {
-          "name": "Create Category",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/categories",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories"]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Desarrollo Web\",\n  \"color\": \"#3b82f6\"\n}"
-            },
-            "description": "Crea una nueva categoría"
-          },
-          "response": []
-        },
-        {
-          "name": "Update Category",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Desarrollo Web Actualizado\",\n  \"color\": \"#2563eb\"\n}"
-            },
-            "description": "Actualiza una categoría existente"
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Category",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/categories/:id",
-              "host": ["{{baseUrl}}"],
-              "path": ["categories", ":id"]
-            },
-            "description": "Elimina una categoría"
-          },
-          "response": []
-        }
-      ]
-    }
-  ]
+	"info": {
+		"_postman_id": "devtools-hub-collection",
+		"name": "DevToolsHub API",
+		"description": "Colección completa de la API DevToolsHub para gestión de herramientas de desarrollo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"version": "1.0.0"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string",
+			"description": "Token JWT obtenido al hacer login"
+		}
+	],
+	"item": [
+		{
+			"name": "Autenticación",
+			"description": "Endpoints para registro y login de usuarios",
+			"item": [
+				{
+					"name": "Registrar usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"usuario_demo\",\n  \"password\": \"ContraseñaSegura123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Iniciar sesión",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"usuario_demo\",\n  \"password\": \"ContraseñaSegura123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Guardar el token en la variable de entorno",
+									"var jsonData = pm.response.json();",
+									"pm.environment.set('token', jsonData.token);",
+									"",
+									"pm.test(\"Login exitoso\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    pm.expect(jsonData.user).to.be.an('object');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Herramientas (Tools)",
+			"description": "CRUD completo para herramientas de desarrollo",
+			"item": [
+				{
+					"name": "Listar todas las herramientas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tools",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar herramientas con filtros",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tools?search=react&category=1&favorites=true&page=1&limit=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools"],
+							"query": [
+								{
+									"key": "search",
+									"value": "react"
+								},
+								{
+									"key": "category",
+									"value": "1"
+								},
+								{
+									"key": "favorites",
+									"value": "true"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener herramienta por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tools/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener estadísticas GitHub",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tools/1/github-stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools", "1", "github-stats"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear nueva herramienta (requiere auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Next.js\",\n  \"descripcion\": \"Framework React con renderizado del lado del servidor\",\n  \"url\": \"https://nextjs.org\",\n  \"rating\": 5,\n  \"es_favorito\": true,\n  \"categories\": [1, 2],\n  \"tags\": [1, 3, 4]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tools",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar herramienta (requiere auth)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"React (Actualizado)\",\n  \"rating\": 5,\n  \"es_favorito\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tools/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar herramienta (requiere auth)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tools/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tools", "1"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categorías",
+			"description": "Gestión de categorías para clasificar herramientas",
+			"item": [
+				{
+					"name": "Listar todas las categorías",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "categories"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear categoría (requiere auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"DevOps\",\n  \"color\": \"#8b5cf6\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "categories"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar categoría (requiere auth)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/categories/3",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "categories", "3"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Etiquetas (Tags)",
+			"description": "Gestión de etiquetas para herramientas",
+			"item": [
+				{
+					"name": "Listar todas las etiquetas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tags",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener etiqueta por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tags/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Crear etiqueta (requiere auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Framework\",\n  \"color\": \"#dc2626\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tags",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar etiqueta (requiere auth)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"JavaScript (Actualizado)\",\n  \"color\": \"#f59e0b\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tags/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar etiqueta (requiere auth)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/tags/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener herramientas con etiqueta",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tags/1/tools",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags", "1", "tools"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar herramienta a etiqueta (requiere auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"toolId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tags/1/tools",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tags", "1", "tools"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Carga de Imágenes",
+			"description": "Subir imágenes para herramientas",
+			"item": [
+				{
+					"name": "Subir imagen (requiere auth)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/ruta/a/imagen.jpg",
+									"description": "Archivo de imagen (JPEG, PNG, GIF)"
+								},
+								{
+									"key": "toolId",
+									"value": "1",
+									"type": "text",
+									"description": "ID de la herramienta asociada"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "upload"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Configuración previa a las peticiones",
+					"console.log('Iniciando colección DevToolsHub API');"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Tests globales para todas las respuestas",
+					"pm.test(\"Tiempo de respuesta aceptable\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});",
+					"",
+					"pm.test(\"Status code es 2xx, 4xx o 5xx según corresponda\", function () {",
+					"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 401, 404, 500]);",
+					"});"
+				]
+			}
+		}
+	]
 }
