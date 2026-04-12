@@ -103,6 +103,40 @@ Este proyecto me ha servido para practicar:
 - Docker y contenedores
 - Git flow con ramas y Pull Requests
 
+## 📚 Documentación Técnica
+
+Para desarrolladores que quieran entender o extender el proyecto:
+
+- **📖 Wiki de la API:** [wiki/](wiki/) - Documentación completa de endpoints
+- **🔄 Colección Postman:** [docs/DevToolsHub.postman_collection.json](docs/DevToolsHub.postman_collection.json)
+- **🔌 Colección Hoppscotch:** [docs/DevToolsHub.hoppscotch.json](docs/DevToolsHub.hoppscotch.json)
+
+## 🛡️ Validación y Seguridad
+
+El proyecto implementa **validación en dos capas**:
+
+1. **Frontend:** Validación visual con Bootstrap 5 + JavaScript
+2. **Backend:** Validación estricta con `express-validator` + sanitización
+
+Ejemplo de validación backend:
+```javascript
+body('nombre').trim().notEmpty().withMessage('El nombre es obligatorio'),
+body('url').optional().isURL().withMessage('URL inválida')
+```
+
+## 👥 Colaboración y Git Flow
+
+Seguimos **GitFlow** para desarrollo colaborativo:
+
+1. `main` → Rama estable (solo recibe PRs aprobadas)
+2. `feature/*` → Nuevas funcionalidades
+3. `fix/*` → Corrección de bugs
+
+**Reglas:**
+- Todos los cambios pasan por Pull Request
+- Commits descriptivos en español
+- Code review antes de merge
+
 ---
 
 Hecho con 💻 por un estudiante de 1º de DAM. ¡Espero que te sirva!
