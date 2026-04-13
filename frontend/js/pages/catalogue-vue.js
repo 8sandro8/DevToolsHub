@@ -435,5 +435,13 @@ if (root) {
         </ul>
       </nav>
     `,
-  }).mount(`#${ROOT_ID}`);
+  });
+
+  // Listen for tool-saved events from app.js (used by both ListView and Vue)
+  document.addEventListener('tool-saved', () => {
+    console.log('[Vue] Tool saved event received, reloading tools');
+    loadTools();
+  });
+
+}).mount(`#${ROOT_ID}`);
 }

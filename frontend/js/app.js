@@ -1071,9 +1071,18 @@ const ToolForm = {
                 window.location.href = `detalle.html?id=${savedToolId}`;
                 return;
             } else {
-                console.log('[DEBUG] Reloading list view');
-                // In list page - reload the tools list
-                await ListView.loadTools();
+                console.log('[DEBUG] Dispatching tool-saved event for UI refresh');
+                // Dispatch event that both ListView (detalle.html) and Vue (index.html) can listen to
+                const event = new CustomEvent('tool-saved', { 
+                    detail: { toolId: toolId, action: 'update' },
+                    bubbles: true 
+                });
+                document.dispatchEvent(event);
+                
+                // Also try ListView if it exists (for detalle.html compatibility)
+                if (typeof ListView !== 'undefined' && ListView.loadTools) {
+                    await ListView.loadTools();
+                }
             }
             
         } catch (error) {
