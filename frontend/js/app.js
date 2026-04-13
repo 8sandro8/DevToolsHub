@@ -985,48 +985,29 @@ if (typeof window !== 'undefined') {
 // ============================================
 const ToolForm = {
     async handleSubmit(e) {
-        e.preventDefault();
-        console.log('🛑 [DEBUG] 1. Clic en guardar detectado. Submit capturado.');
-        
-        Modal.clearErrors();
-        const form = e.target;
-        const formData = new FormData(form);
-        
-        const toolData = {
-            nombre: formData.get('nombre')?.trim(),
-            descripcion: formData.get('descripcion')?.trim() || null,
-            url: formData.get('url')?.trim() || null,
-            logo_url: formData.get('logo_url')?.trim() || null,
-            rating: parseInt(formData.get('rating'), 10) || 3,
-            categories: CategorySelect.getSelected(),
-            tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
-        };
-        
-        const nameInput = _DOM.$('#tool-name');
-        const descInput = _DOM.$('#tool-description');
-        const urlInput  = _DOM.$('#tool-url');
-        const logoInput = _DOM.$('#tool-logo');
-        const catSelect = _DOM.$('#tool-categories');
-
-        let isValid = true;
-
-        if (!_VALIDATION.required(nameInput, 'El nombre')) { isValid = false; }
-        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) { isValid = false; }
-
-        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) { isValid = false; }
-        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) { isValid = false; }
-
-        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) { isValid = false; }
-        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) { isValid = false; }
-        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) { isValid = false; }
-
-        if (!isValid) {
-            console.error('⛔ [DEBUG] Abortando Fetch porque una validación falló.');
-            Toast.error('Por favor, revisa los campos en rojo del formulario.');
-            return;
-        }
+        if (e) e.preventDefault(); // Escudo 1: Parar el recargo de página sí o sí
         
         try {
+            Modal.clearErrors();
+            const form = document.getElementById('tool-form');
+            const formData = new FormData(form);
+            
+            const toolData = {
+                nombre: formData.get('nombre')?.trim(),
+                descripcion: formData.get('descripcion')?.trim() || null,
+                url: formData.get('url')?.trim() || null,
+                logo_url: formData.get('logo_url')?.trim() || null,
+                rating: parseInt(formData.get('rating'), 10) || 3,
+                categories: CategorySelect.getSelected(),
+                tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
+            };
+            
+            // Validación manual antibalas (sin depender de validation.js)
+            if (!toolData.nombre || !toolData.descripcion || toolData.categories.length === 0) {
+                Toast.error('Nombre, descripción y categoría son obligatorios.');
+                return;
+            }
+            
             Modal.setLoading(true);
             let result;
             let savedToolId;
@@ -1034,40 +1015,30 @@ const ToolForm = {
             if (Modal.editingToolId) {
                 result = await _API.updateTool(Modal.editingToolId, toolData);
                 savedToolId = Modal.editingToolId;
-                Toast.success('Herramienta actualizada correctamente');
+                Toast.success('¡Herramienta actualizada!');
             } else {
                 result = await _API.createTool(toolData);
                 savedToolId = result.tool?.id;
-                Toast.success('Herramienta creada correctamente');
+                Toast.success('¡Herramienta creada!');
             }
 
             if (savedToolId) {
                 try {
                     await this.handleImageUpload(savedToolId);
-                } catch (imageError) {
-                    console.error('Image upload error:', imageError);
-                }
+                } catch (err) { console.warn("Error de imagen omitido", err); }
             }
             
             Modal.close();
             
-            if (_state.isDetailMode && savedToolId) {
+            // Recarga bruta y funcional (garantiza que ves los cambios)
+            if (window.location.pathname.includes('detalle.html')) {
                 window.location.href = `detalle.html?id=${savedToolId}`;
-                return;
             } else {
-                const event = new CustomEvent('tool-saved', { 
-                    detail: { toolId: savedToolId, action: 'update' },
-                    bubbles: true 
-                });
-                document.dispatchEvent(event);
-                
-                if (typeof ListView !== 'undefined' && ListView.loadTools) {
-                    await ListView.loadTools();
-                }
+                window.location.reload();
             }
             
         } catch (error) {
-            console.error('💥 [DEBUG] Error en Fetch:', error);
+            console.error("Error crítico guardando:", error);
             Toast.error(error.message || 'Error al guardar la herramienta');
         } finally {
             Modal.setLoading(false);
@@ -1075,48 +1046,50 @@ const ToolForm = {
     },
     
     setupEventListeners() {
-        // Use event delegation on document - works regardless of when modal is rendered
-        document.addEventListener('submit', (e) => {
-            if (e.target && e.target.id === 'tool-form') {
+        // Escudo 2: Atar el evento directamente para evitar delegaciones que fallan
+        const form = document.getElementById('tool-form');
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
                 this.handleSubmit(e);
-            }
-        });
-
-        // Auto-clear validation errors when user starts typing
-        ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
-            _VALIDATION.setupAutoClear(_DOM.$(sel));
-        });
+                return false;
+            };
+        }
         
-        // Rating input change
-        const ratingInput = _DOM.$('#tool-rating');
-        const ratingDisplay = _DOM.$('#rating-display');
+        // Escudo 3: Try-Catch en la validación visual para que NO crashee el resto de la app
+        try {
+            ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
+                if (typeof _VALIDATION !== 'undefined' && _VALIDATION.setupAutoClear) {
+                    _VALIDATION.setupAutoClear(document.querySelector(sel));
+                }
+            });
+        } catch(e) {
+            console.warn("Saltando validación visual externa para evitar crasheo total");
+        }
+        
+        // Listeners básicos (Rating)
+        const ratingInput = document.getElementById('tool-rating');
+        const ratingDisplay = document.getElementById('rating-display');
         if (ratingInput && ratingDisplay) {
             ratingInput.addEventListener('input', (e) => {
                 ratingDisplay.textContent = _Utils.formatRating(parseInt(e.target.value, 10));
             });
         }
         
-        // Modal close handler - Bootstrap handles this automatically
-        _DOM.$('#tool-modal')?.addEventListener('hidden.bs.modal', () => {
+        // Limpieza al cerrar modal
+        document.getElementById('tool-modal')?.addEventListener('hidden.bs.modal', () => {
             Modal.isOpen = false;
             Modal.editingToolId = null;
         });
         
-        // Image file input handler
-        const imageInput = _DOM.$('#tool-image');
+        // Imágenes
+        const imageInput = document.getElementById('tool-image');
         if (imageInput) {
             imageInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // Check file size (5MB max)
                     if (file.size > 5 * 1024 * 1024) {
                         Toast.error('El archivo no puede superar los 5MB');
-                        imageInput.value = '';
-                        return;
-                    }
-                    // Check file type
-                    if (!file.type.startsWith('image/')) {
-                        Toast.error('Solo se permiten archivos de imagen');
                         imageInput.value = '';
                         return;
                     }
@@ -1125,42 +1098,33 @@ const ToolForm = {
             });
         }
 
-        // Delete image button handler
-        const deleteImageBtn = _DOM.$('#btn-delete-image');
+        const deleteImageBtn = document.getElementById('btn-delete-image');
         if (deleteImageBtn) {
             deleteImageBtn.addEventListener('click', async () => {
                 if (!Modal.editingToolId) return;
-
-                if (!confirm('¿Estás seguro de que deseas eliminar la imagen?')) {
-                    return;
-                }
-
+                if (!confirm('¿Eliminar la imagen?')) return;
                 try {
                     await _API.deleteImage(Modal.editingToolId);
-                    Toast.success('Imagen eliminada correctamente');
+                    Toast.success('Imagen eliminada');
                     Modal.resetImagePreviews();
-                    // Reload tools to update the card
-                    await ListView.loadTools();
+                    window.location.reload();
                 } catch (error) {
-                    Toast.error(error.message || 'Error al eliminar la imagen');
+                    Toast.error('Error al eliminar');
                 }
             });
         }
     },
-
-    // Handle image upload separately from form submit
+    
     async handleImageUpload(toolId) {
-        const imageInput = _DOM.$('#tool-image');
-        if (!imageInput || !imageInput.files[0]) {
-            return null;
-        }
+        const imageInput = document.getElementById('tool-image');
+        if (!imageInput || !imageInput.files[0]) return null;
 
         try {
             const result = await _API.uploadImage(toolId, imageInput.files[0]);
-            Toast.success('Imagen subida correctamente');
+            Toast.success('Imagen subida');
             return result;
         } catch (error) {
-            Toast.error(error.message || 'Error al subir la imagen');
+            Toast.error(error.message || 'Error subiendo imagen');
             throw error;
         }
     }
