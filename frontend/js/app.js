@@ -986,17 +986,12 @@ if (typeof window !== 'undefined') {
 const ToolForm = {
     async handleSubmit(e) {
         e.preventDefault();
+        console.log('🛑 [DEBUG] 1. Clic en guardar detectado. Submit capturado.');
         
-        // Clear previous errors
         Modal.clearErrors();
-        
-        // Get form data
         const form = e.target;
         const formData = new FormData(form);
         
-        console.log('[DEBUG] Form submit - editingToolId:', Modal.editingToolId, 'isDetailMode:', _state.isDetailMode);
-        
-        // Build tool data object
         const toolData = {
             nombre: formData.get('nombre')?.trim(),
             descripcion: formData.get('descripcion')?.trim() || null,
@@ -1007,7 +1002,6 @@ const ToolForm = {
             tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
         };
         
-        // Frontend validation with inline error messages
         const nameInput = _DOM.$('#tool-name');
         const descInput = _DOM.$('#tool-description');
         const urlInput  = _DOM.$('#tool-url');
@@ -1016,91 +1010,67 @@ const ToolForm = {
 
         let isValid = true;
 
-        if (!_VALIDATION.required(nameInput, 'El nombre')) isValid = false;
-        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) isValid = false;
+        if (!_VALIDATION.required(nameInput, 'El nombre')) { isValid = false; }
+        else if (!_VALIDATION.maxLength(nameInput, 100, 'El nombre')) { isValid = false; }
 
-        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) isValid = false;
-        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) isValid = false;
+        if (!_VALIDATION.requiredTextarea(descInput, 'La descripción')) { isValid = false; }
+        else if (!_VALIDATION.maxLength(descInput, 500, 'La descripción')) { isValid = false; }
 
-        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) isValid = false;
-        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) isValid = false;
-        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) isValid = false;
+        if (!_VALIDATION.optionalUrl(urlInput, 'La URL del sitio')) { isValid = false; }
+        if (!_VALIDATION.optionalUrl(logoInput, 'La URL del logo')) { isValid = false; }
+        if (!_VALIDATION.requiredSelect(catSelect, 'categoría')) { isValid = false; }
 
-        if (!isValid) return;
+        if (!isValid) {
+            console.error('⛔ [DEBUG] Abortando Fetch porque una validación falló.');
+            Toast.error('Por favor, revisa los campos en rojo del formulario.');
+            return;
+        }
         
         try {
             Modal.setLoading(true);
-            
             let result;
             let savedToolId;
             
             if (Modal.editingToolId) {
-                // Update existing tool
-                console.log('[DEBUG] Updating tool with ID:', Modal.editingToolId, 'Data:', toolData);
                 result = await _API.updateTool(Modal.editingToolId, toolData);
-                console.log('[DEBUG] Update result:', result);
                 savedToolId = Modal.editingToolId;
                 Toast.success('Herramienta actualizada correctamente');
             } else {
-                // Create new tool
                 result = await _API.createTool(toolData);
                 savedToolId = result.tool?.id;
                 Toast.success('Herramienta creada correctamente');
             }
 
-            // Upload image if there's a new one
             if (savedToolId) {
                 try {
                     await this.handleImageUpload(savedToolId);
                 } catch (imageError) {
-                    // Image upload failed but tool was saved
                     console.error('Image upload error:', imageError);
                 }
             }
             
-            // Close modal
             Modal.close();
             
-            console.log('[DEBUG] After save - savedToolId:', savedToolId, 'isDetailMode:', _state.isDetailMode);
-            
-            // Reload appropriate view based on current mode
-            console.log('[DEBUG] After save - isDetailMode:', _state.isDetailMode, 'savedToolId:', savedToolId);
             if (_state.isDetailMode && savedToolId) {
-                console.log('[DEBUG] Reloading detail page for tool:', savedToolId);
-                // In detail page - reload the entire page to get fresh data
                 window.location.href = `detalle.html?id=${savedToolId}`;
                 return;
             } else {
-                console.log('[DEBUG] Dispatching tool-saved event for UI refresh');
-                // Dispatch event that both ListView (detalle.html) and Vue (index.html) can listen to
                 const event = new CustomEvent('tool-saved', { 
-                    detail: { toolId: toolId, action: 'update' },
+                    detail: { toolId: savedToolId, action: 'update' },
                     bubbles: true 
                 });
                 document.dispatchEvent(event);
                 
-                // Also try ListView if it exists (for detalle.html compatibility)
                 if (typeof ListView !== 'undefined' && ListView.loadTools) {
                     await ListView.loadTools();
                 }
             }
             
         } catch (error) {
+            console.error('💥 [DEBUG] Error en Fetch:', error);
             Toast.error(error.message || 'Error al guardar la herramienta');
         } finally {
             Modal.setLoading(false);
-        }
-    },
-    
-    isValidUrl(string) {
-        if (!string) return true; // Allow empty URLs
-        try {
-            // If no protocol, add one for validation purposes
-            const urlToCheck = string.match(/^https?:\/\//) ? string : 'https://' + string;
-            new URL(urlToCheck);
-            return true;
-        } catch (_) {
-            return false;
         }
     },
     
