@@ -50,6 +50,7 @@ const createToolRoutes = (db) => {
             body('categories').optional().isArray(),
             body('tags').optional().isArray()
         ],
+        validate,
         toolController.update.bind(toolController)
     );
 
