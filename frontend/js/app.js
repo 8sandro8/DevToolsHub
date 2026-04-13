@@ -1075,10 +1075,12 @@ const ToolForm = {
     },
     
     setupEventListeners() {
-        const form = _DOM.$('#tool-form');
-        if (form) {
-            form.addEventListener('submit', (e) => this.handleSubmit(e));
-        }
+        // Use event delegation on document - works regardless of when modal is rendered
+        document.addEventListener('submit', (e) => {
+            if (e.target && e.target.id === 'tool-form') {
+                this.handleSubmit(e);
+            }
+        });
 
         // Auto-clear validation errors when user starts typing
         ['#tool-name', '#tool-description', '#tool-url', '#tool-logo', '#tool-categories'].forEach(sel => {
