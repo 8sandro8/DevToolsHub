@@ -148,11 +148,25 @@ const _API = {
     },
 
     getToolHistory(id) {
-        return this.request(`/tools/${id}/history`);
+        return this.request(`/tools/${id}/history`).catch((error) => {
+            // Si el endpoint no existe (404), devolver estructura vacía
+            if (error.message.includes('404') || error.message.includes('Not Found')) {
+                console.warn('History endpoint not available:', error.message);
+                return { history: [] };
+            }
+            throw error;
+        });
     },
 
     getToolComments(id) {
-        return this.request(`/tools/${id}/comments`);
+        return this.request(`/tools/${id}/comments`).catch((error) => {
+            // Si el endpoint no existe (404), devolver estructura vacía
+            if (error.message.includes('404') || error.message.includes('Not Found')) {
+                console.warn('Comments endpoint not available:', error.message);
+                return { comments: [] };
+            }
+            throw error;
+        });
     },
 
     createToolComment(id, commentData) {
@@ -987,6 +1001,8 @@ const ToolForm = {
     async handleSubmit(e) {
         if (e) e.preventDefault(); // Escudo 1: Parar el recargo de página sí o sí
         
+        console.log('[DEBUG] handleSubmit called - Modal.editingToolId:', Modal.editingToolId);
+        
         try {
             Modal.clearErrors();
             const form = document.getElementById('tool-form');
@@ -1012,12 +1028,19 @@ const ToolForm = {
             let result;
             let savedToolId;
             
+            console.log('[DEBUG] handleSubmit - Modal.editingToolId before save:', Modal.editingToolId);
+            console.log('[DEBUG] handleSubmit - toolData to save:', toolData);
+            
             if (Modal.editingToolId) {
+                console.log('[DEBUG] handleSubmit - Calling updateTool with ID:', Modal.editingToolId);
                 result = await _API.updateTool(Modal.editingToolId, toolData);
+                console.log('[DEBUG] handleSubmit - updateTool result:', result);
                 savedToolId = Modal.editingToolId;
                 Toast.success('¡Herramienta actualizada!');
             } else {
+                console.log('[DEBUG] handleSubmit - Calling createTool');
                 result = await _API.createTool(toolData);
+                console.log('[DEBUG] handleSubmit - createTool result:', result);
                 savedToolId = result.tool?.id;
                 Toast.success('¡Herramienta creada!');
             }
@@ -1586,15 +1609,8 @@ const DetailView = {
 
             section.appendChild(list);
         } catch (error) {
-            const skeleton = section.querySelector('.tool-history-skeleton');
-            if (skeleton) {
-                skeleton.innerHTML = `
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Historial no disponible
-                    </div>
-                `;
-            }
+            console.warn('Error loading history:', error.message);
+            if (section) section.classList.add('d-none');
         }
     },
 
@@ -1772,15 +1788,8 @@ const DetailView = {
                 this.setupCommentActions(toolId);
             }
         } catch (error) {
-            const skeleton = section.querySelector('.tool-comments-skeleton');
-            if (skeleton) {
-                skeleton.innerHTML = `
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Comentarios no disponibles
-                    </div>
-                `;
-            }
+            console.warn('Error loading comments:', error.message);
+            if (section) section.classList.add('d-none');
         }
     }
 };
