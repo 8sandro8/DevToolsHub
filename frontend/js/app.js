@@ -1046,15 +1046,12 @@ const ToolForm = {
     },
     
     setupEventListeners() {
-        // Escudo 2: Usar addEventListener con capture para captar el evento ANTES de que llegue al DOM nativo
-        const form = document.getElementById('tool-form');
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        // SOLUCIÓN DEFINITIVA: Click directo al botón, no submit del form
+        const saveButton = document.getElementById('btn-submit');
+        if (saveButton) {
+            saveButton.addEventListener('click', (e) => {
                 this.handleSubmit(e);
-                return false;
-            }, { capture: true });
+            });
         }
         
         // Escudo 3: Try-Catch en la validación visual para que NO crashee el resto de la app
