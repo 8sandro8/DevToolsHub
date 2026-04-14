@@ -1046,14 +1046,15 @@ const ToolForm = {
     },
     
     setupEventListeners() {
-        // Escudo 2: Atar el evento directamente para evitar delegaciones que fallan
+        // Escudo 2: Usar addEventListener con capture para captar el evento ANTES de que llegue al DOM nativo
         const form = document.getElementById('tool-form');
         if (form) {
-            form.onsubmit = (e) => {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.handleSubmit(e);
                 return false;
-            };
+            }, { capture: true });
         }
         
         // Escudo 3: Try-Catch en la validación visual para que NO crashee el resto de la app
