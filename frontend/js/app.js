@@ -584,9 +584,21 @@ const CategorySelect = {
     // Get selected category IDs
     getSelected() {
         const select = _DOM.$('#tool-categories');
-        if (!select) return [];
+        if (!select) {
+            console.warn('[DEBUG] CategorySelect.getSelected - Select element not found');
+            return [];
+        }
         
-        return Array.from(select.selectedOptions).map(option => parseInt(option.value, 10));
+        const selectedOptions = Array.from(select.selectedOptions);
+        console.log('[DEBUG] CategorySelect.getSelected - Selected options:', selectedOptions.map(o => ({ value: o.value, text: o.textContent })));
+        
+        const categoryIds = selectedOptions
+            .filter(option => option.value && option.value !== '')
+            .map(option => parseInt(option.value, 10))
+            .filter(id => !isNaN(id));
+            
+        console.log('[DEBUG] CategorySelect.getSelected - Parsed category IDs:', categoryIds);
+        return categoryIds;
     }
 };
 
@@ -1006,21 +1018,66 @@ const ToolForm = {
         try {
             Modal.clearErrors();
             const form = document.getElementById('tool-form');
+            if (!form) {
+                console.error('[DEBUG] handleSubmit - Form #tool-form not found');
+                Toast.error('Formulario no encontrado');
+                return;
+            }
+            
             const formData = new FormData(form);
             
+            // Verificar que los elementos del formulario existan
+            const nombre = formData.get('nombre')?.trim();
+            const descripcion = formData.get('descripcion')?.trim() || null;
+            const url = formData.get('url')?.trim() || null;
+            const logo_url = formData.get('logo_url')?.trim() || null;
+            const rating = parseInt(formData.get('rating'), 10) || 3;
+            
+            console.log('[DEBUG] handleSubmit - Form values:', { nombre, descripcion, url, logo_url, rating });
+            
+            // Obtener categorías seleccionadas
+            let categories = [];
+            try {
+                categories = CategorySelect.getSelected();
+                console.log('[DEBUG] handleSubmit - Selected categories:', categories);
+            } catch (error) {
+                console.error('[DEBUG] handleSubmit - Error getting categories:', error);
+                Toast.error('Error al obtener categorías seleccionadas');
+                return;
+            }
+            
+            // Obtener tags seleccionados
+            let tags = [];
+            try {
+                if (typeof TagManager !== 'undefined' && TagManager && typeof TagManager.getSelectedTags === 'function') {
+                    tags = TagManager.getSelectedTags();
+                }
+                console.log('[DEBUG] handleSubmit - Selected tags:', tags);
+            } catch (error) {
+                console.warn('[DEBUG] handleSubmit - Error getting tags:', error);
+                // Tags son opcionales, continuar sin ellos
+            }
+            
             const toolData = {
-                nombre: formData.get('nombre')?.trim(),
-                descripcion: formData.get('descripcion')?.trim() || null,
-                url: formData.get('url')?.trim() || null,
-                logo_url: formData.get('logo_url')?.trim() || null,
-                rating: parseInt(formData.get('rating'), 10) || 3,
-                categories: CategorySelect.getSelected(),
-                tags: typeof TagManager !== 'undefined' ? TagManager.getSelectedTags() : []
+                nombre,
+                descripcion,
+                url,
+                logo_url,
+                rating,
+                categories,
+                tags
             };
             
             // Validación manual antibalas (sin depender de validation.js)
-            if (!toolData.nombre || !toolData.descripcion || toolData.categories.length === 0) {
-                Toast.error('Nombre, descripción y categoría son obligatorios.');
+            if (!toolData.nombre || !toolData.descripcion) {
+                Toast.error('Nombre y descripción son obligatorios.');
+                return;
+            }
+            
+            // La categoría es obligatoria solo si hay opciones disponibles
+            const categorySelect = document.getElementById('tool-categories');
+            if (categorySelect && categorySelect.options.length > 1 && toolData.categories.length === 0) {
+                Toast.error('Por favor selecciona al menos una categoría.');
                 return;
             }
             
