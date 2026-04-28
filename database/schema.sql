@@ -95,6 +95,18 @@ CREATE TABLE IF NOT EXISTS user (
 );
 
 -- ============================================
+-- COMENTARIOS/OPINIONES
+-- ============================================
+CREATE TABLE IF NOT EXISTS tool_comment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool_id INTEGER NOT NULL,
+    autor TEXT NOT NULL,
+    contenido TEXT NOT NULL,
+    fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (tool_id) REFERENCES tool(id) ON DELETE CASCADE
+);
+
+-- ============================================
 -- ÍNDICES
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_tool_nombre ON tool(nombre);
