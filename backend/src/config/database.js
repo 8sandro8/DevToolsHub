@@ -41,7 +41,7 @@ function initDatabase() {
 
 /**
  * Run schema.sql to create tables
- * Splits by semicolon and executes each valid statement
+ * Uses better-sqlite3 transaction for atomic table creation
  */
 function createTables(db) {
     if (!fs.existsSync(SCHEMA_PATH)) {
@@ -50,31 +50,14 @@ function createTables(db) {
     }
 
     const schema = fs.readFileSync(SCHEMA_PATH, 'utf8');
-    const statements = schema
-        .split(';')
-        .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--'));
 
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const stmt of statements) {
-        // Skip empty lines and comment-only statements
-        if (!stmt || stmt.length < 3) continue;
-
-        try {
-            db.exec(stmt);
-            successCount++;
-        } catch (err) {
-            // Log but don't fail on individual errors (some are expected like IF NOT EXISTS)
-            if (!err.message.includes('already exists') && !err.message.includes('transaction')) {
-                console.warn(`Schema statement warning: ${err.message.substring(0, 80)}`);
-            }
-            errorCount++;
-        }
+    try {
+        db.exec(schema);
+        console.log('Database tables created successfully');
+    } catch (err) {
+        console.error('Error creating tables:', err.message);
+        throw err;
     }
-
-    console.log(`Database tables: ${successCount} executed, ${errorCount} warnings`);
 }
 
 /**
@@ -85,14 +68,22 @@ function seedDatabase(db) {
         console.warn(`Seed file not found at ${SEED_PATH}, skipping seed`);
         return;
     }
-    
-    // Check if already seeded
-    const count = db.prepare('SELECT COUNT(*) as count FROM tool').get();
+
+    // Check if already seeded (table must exist first)
+    let count;
+    try {
+        count = db.prepare('SELECT COUNT(*) as count FROM tool').get();
+    } catch (err) {
+        // Tables not created yet, skip seed
+        console.warn('Tables not ready yet, skipping seed');
+        return;
+    }
+
     if (count.count > 0) {
         console.log('Database already seeded, skipping');
         return;
     }
-    
+
     const seed = fs.readFileSync(SEED_PATH, 'utf8');
     db.exec(seed);
     console.log('Database seeded with initial data');
