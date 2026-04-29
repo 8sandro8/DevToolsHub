@@ -13,6 +13,7 @@ const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
 const createAuthRoutes = require('./routes/auth.routes');
 const createGitHubRoutes = require('./routes/github.routes');
+const createCommentRoutes = require('./routes/comment.routes');
 const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
 
@@ -108,6 +109,7 @@ const protectMutations = (req, res, next) => {
 app.use('/api/tools', protectMutations, createToolRoutes(db));
 app.use('/api/categories', protectMutations, createCategoryRoutes(db));
 app.use('/api/tags', protectMutations, createTagRoutes(db));
+app.use('/api/tools', protectMutations, createCommentRoutes(db));
 
 // 404 handler
 app.use((req, res) => {
