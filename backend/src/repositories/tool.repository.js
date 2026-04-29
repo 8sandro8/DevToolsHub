@@ -38,6 +38,8 @@ class ToolRepository extends BaseRepository {
 
         // Filtro por año (usando strftime para extraer año de fecha_creacion)
         if (anio !== undefined && anio !== null) {
+            // Excluir tools con fecha_creacion NULL
+            conditions.push("t.fecha_creacion IS NOT NULL");
             conditions.push("strftime('%Y', t.fecha_creacion) = ?");
             params.push(String(anio));
         }
