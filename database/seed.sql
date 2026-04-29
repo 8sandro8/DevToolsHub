@@ -2,6 +2,44 @@
 -- Initial categories and sample tools
 
 -- ============================================
+-- TAGS INICIALES
+-- ============================================
+INSERT INTO tag (nombre, slug, color) VALUES
+    ('JavaScript', 'javascript', '#f7df1e'),
+    ('Python', 'python', '#3776ab'),
+    ('Docker', 'docker', '#2496ed'),
+    ('Git', 'git', '#f05032'),
+    ('API', 'api', '#009688'),
+    ('Testing', 'testing', '#4caf50'),
+    ('Frontend', 'frontend', '#61dafb'),
+    ('Backend', 'backend', '#68a063');
+
+-- ============================================
+-- RELACIONES HERRAMIENTA-TAG
+-- ============================================
+-- Postman -> API, Testing
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (1, 5);
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (1, 6);
+
+-- VS Code -> Frontend, Backend
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (2, 7);
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (2, 8);
+
+-- GitHub -> Git, API
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (3, 4);
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (3, 5);
+
+-- Insomnia -> API, Testing
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (4, 5);
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (4, 6);
+
+-- Docker -> Docker
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (5, 3);
+
+-- Figma -> Frontend, Design
+INSERT INTO tool_tag (tool_id, tag_id) VALUES (6, 7);
+
+-- ============================================
 -- CATEGORÍAS INICIALES
 -- ============================================
 INSERT INTO category (nombre, color) VALUES
