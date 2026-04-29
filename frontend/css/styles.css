@@ -340,6 +340,26 @@ body {
 .rating-display {
     font-size: var(--font-size-lg);
     letter-spacing: 2px;
+    min-width: 80px;
+}
+
+.img-thumbnail-small {
+    max-width: 150px;
+    max-height: 150px;
+}
+
+.color-input-small {
+    width: 50px;
+}
+
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.color-text-input {
+    max-width: 100px;
 }
 
 /* ============================================
