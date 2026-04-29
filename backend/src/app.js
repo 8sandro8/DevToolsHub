@@ -13,6 +13,7 @@ const createCategoryRoutes = require('./routes/category.routes');
 const createTagRoutes = require('./routes/tag.routes');
 const createAuthRoutes = require('./routes/auth.routes');
 const createGitHubRoutes = require('./routes/github.routes');
+const createCommentRoutes = require('./routes/comment.routes');
 const { authenticateToken } = require('./middleware/auth.middleware');
 const db = require('./config/database');
 
@@ -39,6 +40,10 @@ if (process.env.NODE_ENV !== 'production') {
 // Static files - Frontend
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
+
+// Static files - Lenguajes de Marcas (docs/lm/)
+const lmPath = path.join(frontendPath, 'docs', 'lm');
+app.use('/docs/lm', express.static(lmPath));
 
 // Root route - TEST
 app.get('/test', (req, res) => {
@@ -104,6 +109,7 @@ const protectMutations = (req, res, next) => {
 app.use('/api/tools', protectMutations, createToolRoutes(db));
 app.use('/api/categories', protectMutations, createCategoryRoutes(db));
 app.use('/api/tags', protectMutations, createTagRoutes(db));
+app.use('/api/tools', protectMutations, createCommentRoutes(db));
 
 // 404 handler
 app.use((req, res) => {

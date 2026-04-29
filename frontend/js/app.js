@@ -332,7 +332,7 @@ const _Utils = {
         if (!dateString) return '';
         const isSqliteTimestamp = typeof dateString === 'string'
             && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateString);
-        const date = new Date(isSqliteTimestamp ? `${dateString.replace(' ', 'T')}Z` : dateString);
+        const date = new Date(isSqliteTimestamp ? dateString.replace(' ', 'T') : dateString);
         if (Number.isNaN(date.getTime())) return '';
         const now = new Date();
         const diffMs = now - date;
@@ -1407,7 +1407,33 @@ const DetailView = {
             catSection.appendChild(catContainer);
             
             card.appendChild(catSection);
-            
+
+            // Tags section
+            const tagsSection = _DOM.createElement('div', 'detail-section');
+            const tagsTitle = _DOM.createElement('h3', 'detail-section-title', {
+                textContent: 'Etiquetas'
+            });
+            tagsSection.appendChild(tagsTitle);
+
+            const tagsContainer = _DOM.createElement('div', 'detail-tags');
+            if (tool.tags && tool.tags.length > 0) {
+                tool.tags.forEach(tag => {
+                    const tagBadge = _DOM.createElement('span', 'tag-badge', {
+                        textContent: tag.nombre
+                    });
+                    tagBadge.style.backgroundColor = tag.color || '#6c757d';
+                    tagsContainer.appendChild(tagBadge);
+                });
+            } else {
+                const noTags = _DOM.createElement('span', 'text-muted fst-italic', {
+                    textContent: 'Sin etiquetas'
+                });
+                tagsContainer.appendChild(noTags);
+            }
+            tagsSection.appendChild(tagsContainer);
+
+            card.appendChild(tagsSection);
+
             // Metadata section
             const metaSection = _DOM.createElement('div', 'detail-section detail-meta-section');
             

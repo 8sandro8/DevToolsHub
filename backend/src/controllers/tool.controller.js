@@ -15,6 +15,8 @@ class ToolController {
             const filters = {
                 buscar: req.query.buscar,
                 categoria: req.query.categoria,
+                tag: req.query.tag,
+                anio: req.query.anio ? parseInt(req.query.anio) : undefined,
                 favorito: req.query.favorito !== undefined ? req.query.favorito === 'true' : undefined,
                 page: parseInt(req.query.page) || 1,
                 limit: parseInt(req.query.limit) || 10,

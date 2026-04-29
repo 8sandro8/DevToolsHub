@@ -10,7 +10,7 @@ class ToolRepository extends BaseRepository {
         super(db, 'tool');
     }
 
-    findWithFilters({ buscar, categoria, favorito, page = 1, limit = 10, ordenar = 'desc' }) {
+    findWithFilters({ buscar, categoria, tag, anio, favorito, page = 1, limit = 10, ordenar = 'desc' }) {
         let sql = 'SELECT DISTINCT t.* FROM tool t';
         const params = [];
         const conditions = [];
@@ -22,11 +22,26 @@ class ToolRepository extends BaseRepository {
             params.push(categoria);
         }
 
+        // Join con tags si se filtra por tag
+        if (tag) {
+            sql += ' INNER JOIN tool_tag tt ON t.id = tt.tool_id INNER JOIN tag tg ON tt.tag_id = tg.id';
+            conditions.push('tg.nombre = ?');
+            params.push(tag);
+        }
+
         // Búsqueda full-text
         if (buscar) {
             sql += ' INNER JOIN tool_fts fts ON t.id = fts.rowid';
             conditions.push('tool_fts MATCH ?');
             params.push(buscar + '*');
+        }
+
+        // Filtro por año (usando strftime para extraer año de fecha_creacion)
+        if (anio !== undefined && anio !== null) {
+            // Excluir tools con fecha_creacion NULL
+            conditions.push("t.fecha_creacion IS NOT NULL");
+            conditions.push("strftime('%Y', t.fecha_creacion) = ?");
+            params.push(String(anio));
         }
 
         // Filtro favoritos

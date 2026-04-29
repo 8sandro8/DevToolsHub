@@ -10,12 +10,15 @@ class CommentRepository {
 
     normalizeTimestamp(value) {
         if (typeof value !== 'string' || !value) return value;
+        // Already has timezone - return as-is
         if (/Z$|[+-]\d{2}:?\d{2}$/.test(value)) {
             return value;
         }
 
+        // SQLite localtime format - convert space to T but DON'T add Z
+        // This preserves local time for correct frontend parsing
         if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(value)) {
-            return `${value.replace(' ', 'T')}Z`;
+            return value.replace(' ', 'T');
         }
 
         return value;
@@ -54,8 +57,8 @@ class CommentRepository {
 
     create(toolId, autor, contenido) {
         const stmt = this.db.prepare(`
-            INSERT INTO tool_comment (tool_id, autor, contenido)
-            VALUES (?, ?, ?)
+            INSERT INTO tool_comment (tool_id, autor, contenido, fecha_creacion)
+            VALUES (?, ?, ?, datetime('now', 'localtime'))
         `);
 
         const result = stmt.run(toolId, autor, contenido);

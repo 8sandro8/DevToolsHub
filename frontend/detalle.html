@@ -158,7 +158,7 @@
                             <!-- Current image preview -->
                             <div id="current-image-preview" class="mb-2 d-none">
                                 <div class="position-relative d-inline-block">
-                                    <img id="current-image" src="" alt="Imagen actual" class="rounded" style="max-width: 150px; max-height: 150px;">
+                                    <img id="current-image" src="" alt="Imagen actual" class="rounded img-thumbnail-small">
                                     <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" id="btn-delete-image" title="Eliminar imagen">
                                         ×
                                     </button>
@@ -178,7 +178,7 @@
                             <div class="form-text">Sube una imagen (jpg, png, gif, webp, svg) - Máximo 5MB</div>
                             <!-- New image preview -->
                             <div id="new-image-preview" class="mt-2 d-none">
-                                <img id="new-image" src="" alt="Nueva imagen" class="rounded" style="max-width: 150px; max-height: 150px;">
+                                <img id="new-image" src="" alt="Nueva imagen" class="rounded img-thumbnail-small">
                                 <p class="text-muted small mt-1">Nueva imagen seleccionada</p>
                             </div>
                         </div>
@@ -195,7 +195,7 @@
                                     max="5"
                                     value="3"
                                 >
-                                <span class="rating-display text-warning fw-bold" id="rating-display" style="min-width: 80px;">★★★☆☆</span>
+                                <span class="rating-display text-warning fw-bold" id="rating-display">★★★☆☆</span>
                             </div>
                         </div>
 
@@ -274,9 +274,9 @@
                     <div class="mb-3">
                         <label for="tag-color-input" class="form-label">Color</label>
                         <div class="d-flex align-items-center gap-2">
-                            <input type="color" class="form-control form-control-color" id="tag-color-input" value="#6c757d" style="width: 50px;">
-                            <span id="tag-color-preview" class="badge" style="background-color: #6c757d; width: 24px; height: 24px; border-radius: 50%;"></span>
-                            <input type="text" class="form-control" id="tag-color-text" value="#6c757d" style="max-width: 100px;">
+                            <input type="color" class="form-control form-control-color color-input-small" id="tag-color-input" value="#6c757d">
+                            <span id="tag-color-preview" class="badge color-swatch"></span>
+                            <input type="text" class="form-control color-text-input" id="tag-color-text" value="#6c757d">
                         </div>
                     </div>
                 </div>

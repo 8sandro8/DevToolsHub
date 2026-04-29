@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejemplos XPath - DevToolsHub</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #4CAF50;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .ejemplo {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .ejemplo h3 {
+      margin-top: 0;
+      color: #2196F3;
+    }
+    .xpath {
+      background: #263238;
+      color: #aed581;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .result {
+      background: #e8f5e9;
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 4px solid #4CAF50;
+    }
+    .error {
+      background: #ffebee;
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 4px solid #f44336;
+      color: #c62828;
+    }
+    .total {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <a href="index-lm.html" class="back-link">← Volver al índice</a>
+  
+  <h1>Ejemplos de Expresiones XPath</h1>
+  <p>Las siguientes expresiones XPath se ejecutan sobre <code>datos.xml</code> utilizando la API del navegador.</p>
+  
+  <div id="results"></div>
+
+  <script>
+    // Función para cargar XML
+    function loadXML(url) {
+      return new Promise((resolve, reject) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open("GET", url, true);
+        xhttp.onload = function() {
+          if (this.status === 200) {
+            resolve(this.responseXML);
+          } else {
+            reject(new Error("Error cargando " + url));
+          }
+        };
+        xhttp.onerror = () => reject(new Error("Error de red"));
+        xhttp.send(null);
+      });
+    }
+
+    // Función para ejecutar XPath y mostrar resultado
+    function executeXPath(xmlDoc, xpathExpr, title) {
+      const resultsDiv = document.getElementById("results");
+      
+      const ejemploDiv = document.createElement("div");
+      ejemploDiv.className = "ejemplo";
+      
+      let html = `<h3>${title}</h3>`;
+      html += `<div class="xpath">${xpathExpr}</div>`;
+      
+      try {
+        const result = xmlDoc.evaluate(xpathExpr, xmlDoc, null, XPathResult.ANY_TYPE, null);
+        
+        let output = [];
+        let node;
+        
+        switch (result.resultType) {
+          case XPathResult.NUMBER_TYPE:
+            output = ["Resultado numérico: " + result.numberValue];
+            break;
+          case XPathResult.STRING_TYPE:
+            output = ["Resultado de texto: " + result.stringValue];
+            break;
+          case XPathResult.BOOLEAN_TYPE:
+            output = ["Resultado booleano: " + result.booleanValue];
+            break;
+          default:
+            // NODE_ITERATOR_TYPE
+            while (node = result.iterateNext()) {
+              output.push(node.textContent.trim());
+            }
+        }
+        
+        if (output.length === 0) {
+          html += '<div class="result">No se encontraron resultados</div>';
+        } else {
+          html += '<div class="result">' + output.join("<br>") + '</div>';
+        }
+      } catch (error) {
+        html += '<div class="error">Error: ' + error.message + '</div>';
+      }
+      
+      ejemploDiv.innerHTML = html;
+      resultsDiv.appendChild(ejemploDiv);
+    }
+
+    // Cargar XML y ejecutar ejemplos
+    loadXML("datos.xml").then(xmlDoc => {
+      if (!xmlDoc) {
+        document.getElementById("results").innerHTML = '<div class="error">No se pudo cargar datos.xml</div>';
+        return;
+      }
+      
+      // Verificar errores de parseo
+      const parserError = xmlDoc.getElementsByTagName("parsererror");
+      if (parserError.length > 0) {
+        document.getElementById("results").innerHTML = '<div class="error">Error de parsing XML: ' + parserError[0].textContent + '</div>';
+        return;
+      }
+
+      // 1. Selección por nombre de elemento (todas las herramientas)
+      executeXPath(xmlDoc, "//herramienta/nombre", "1. Seleccionar todos los nombres de herramientas");
+
+      // 2. Predicado con posición (primera herramienta)
+      executeXPath(xmlDoc, "//herramienta[1]/nombre", "2. Primera herramienta (predicado de posición)");
+
+      // 3. Predicado con posición (última herramienta)
+      executeXPath(xmlDoc, "//herramienta[last()]/nombre", "3. Última herramienta (función last())");
+
+      // 4. Función de cadena - contains()
+      executeXPath(xmlDoc, "//herramienta[contains(nombre, 'Code')]/nombre", "4. Herramientas que contienen 'Code' en el nombre");
+
+      // 5. Función de cadena - starts-with()
+      executeXPath(xmlDoc, "//herramienta[starts-with(nombre, 'D')]/nombre", "5. Herramientas que empiezan por 'D'");
+
+      // 6. Selección por texto con contains en descripción
+      executeXPath(xmlDoc, "//herramienta[contains(descripcion, 'desarrollo')]/nombre", "6. Herramientas con 'desarrollo' en descripción");
+
+      // 7. Función agregada - count()
+      const total = xmlDoc.evaluate("count(//herramienta)", xmlDoc, null, XPathResult.NUMBER_TYPE, null);
+      const countDiv = document.createElement("div");
+      countDiv.className = "total";
+      countDiv.innerHTML = "7. Total de herramientas (count): <strong>" + total.numberValue + "</strong>";
+      document.getElementById("results").appendChild(countDiv);
+
+      // 8. Selección por categoría
+      executeXPath(xmlDoc, "//herramienta[categoria='IDE']/nombre", "8. Herramientas de categoría 'IDE'");
+
+      // 9. Selección de atributos
+      executeXPath(xmlDoc, "//herramienta/@id", "9. IDs de todas las herramientas (atributos)");
+
+      // 10. Ordenamiento - posicionando elementos
+      executeXPath(xmlDoc, "//herramienta[position() <= 3]/nombre", "10. Primeras 3 herramientas (position) <= 3");
+
+    }).catch(error => {
+      document.getElementById("results").innerHTML = '<div class="error">Error cargando XML: ' + error.message + '</div>';
+    });
+  </script>
+</body>
+</html>
