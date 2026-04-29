@@ -316,14 +316,14 @@ if (root) {
           <div class="col-12 col-sm-auto col-md-auto">
             <select class="form-select" :value="state.filters.category" @change="(event) => setFilter('category', event.target.value)">
               <option value="">Todas las categorías</option>
-              <option v-for="category in state.categories" :key="category.id" :value="String(category.id)">{{ category.nombre }}</option>
+              <option v-for="category in state.categories" :key="category.id" :value="category.nombre">{{ category.nombre }}</option>
             </select>
           </div>
 
           <div class="col-12 col-sm-auto col-md-auto">
             <select class="form-select" :value="state.filters.tag" @change="(event) => setFilter('tag', event.target.value)">
               <option value="">Todos los tags</option>
-              <option v-for="tag in state.tags" :key="tag.id" :value="String(tag.id)">{{ tag.nombre }}</option>
+              <option v-for="tag in state.tags" :key="tag.id" :value="tag.nombre">{{ tag.nombre }}</option>
             </select>
           </div>
 
