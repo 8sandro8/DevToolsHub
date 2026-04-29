@@ -42,7 +42,7 @@ const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
 
 // Static files - Lenguajes de Marcas (docs/lm/)
-const lmPath = path.resolve(__dirname, '..', '..', 'docs', 'lm');
+const lmPath = path.join(frontendPath, 'docs', 'lm');
 app.use('/docs/lm', express.static(lmPath));
 
 // Root route - TEST
