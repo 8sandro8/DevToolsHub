@@ -14,7 +14,18 @@ class ToolService {
     }
 
     getAll(filters) {
-        return this.repository.findWithFilters(filters);
+        const result = this.repository.findWithFilters(filters);
+
+        // Enrich each tool with categories and tags
+        if (result.data && result.data.length > 0) {
+            result.data = result.data.map(tool => ({
+                ...tool,
+                categories: this.repository.getCategories(tool.id),
+                tags: this.repository.getTags(tool.id)
+            }));
+        }
+
+        return result;
     }
 
     async getById(id) {
@@ -70,14 +81,14 @@ class ToolService {
         const tool = this.repository.update(id, toolData);
         if (!tool) return null;
         
-        // Actualizar categorías si se proporcionan
-        if (categories !== undefined) {
+        // Actualizar categorías si se proporcionan (verificar que es array, [] es falsy)
+        if (categories !== undefined && Array.isArray(categories)) {
             this.repository.setCategories(id, categories);
             tool.categories = this.repository.getCategories(id);
         }
         
-        // Actualizar tags si se proporcionan
-        if (tags !== undefined) {
+        // Actualizar tags si se proporcionan (verificar que es array, [] es falsy)
+        if (tags !== undefined && Array.isArray(tags)) {
             this.repository.setTags(id, tags);
             tool.tags = this.repository.getTags(id);
         }

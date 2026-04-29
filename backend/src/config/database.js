@@ -69,10 +69,14 @@ function seedDatabase(db) {
         return;
     }
 
+    // DEBUG: Log paths
+    console.log(`[DEBUG] SEED_PATH resolved to: ${SEED_PATH}`);
+
     // Check if already seeded (table must exist first)
     let count;
     try {
         count = db.prepare('SELECT COUNT(*) as count FROM tool').get();
+        console.log(`[DEBUG] Current tool count: ${count.count}`);
     } catch (err) {
         // Tables not created yet, skip seed
         console.warn('Tables not ready yet, skipping seed');
@@ -84,7 +88,10 @@ function seedDatabase(db) {
         return;
     }
 
+    console.log('[DEBUG] Proceeding with seed...');
     const seed = fs.readFileSync(SEED_PATH, 'utf8');
+    console.log(`[DEBUG] Seed file size: ${seed.length} bytes`);
+
     db.exec(seed);
     console.log('Database seeded with initial data');
 }
