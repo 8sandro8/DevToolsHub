@@ -40,6 +40,10 @@ if (process.env.NODE_ENV !== 'production') {
 const frontendPath = path.resolve(__dirname, '..', '..', 'frontend');
 app.use(express.static(frontendPath));
 
+// Static files - Lenguajes de Marcas (docs/lm/)
+const lmPath = path.resolve(__dirname, '..', '..', 'docs', 'lm');
+app.use('/docs/lm', express.static(lmPath));
+
 // Root route - TEST
 app.get('/test', (req, res) => {
     res.send('TEST OK');

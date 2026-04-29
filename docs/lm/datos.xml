@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE herramientas [
+  <!ELEMENT herramientas (herramienta+)>
+  <!ELEMENT herramienta (nombre, categoria, tags, descripcion)>
+  <!ELEMENT nombre (#PCDATA)>
+  <!ELEMENT categoria (#PCDATA)>
+  <!ELEMENT tags (#PCDATA)>
+  <!ELEMENT descripcion (#PCDATA)>
+  <!ATTLIST herramienta id CDATA #REQUIRED>
+]>
+<herramientas>
+  <herramienta id="1">
+    <nombre>Visual Studio Code</nombre>
+    <categoria>IDE</categoria>
+    <tags>desarrollo,web,frontend,código</tags>
+    <descripcion>Editor de código fuente moderno con soporte para múltiples lenguajes y extensiones</descripcion>
+  </herramienta>
+  <herramienta id="2">
+    <nombre>Git</nombre>
+    <categoria>Control de Versiones</categoria>
+    <tags>control,desarrollo,git,versiones</tags>
+    <descripcion>Sistema de control de versiones distribuido para gestionar cambios en el código</descripcion>
+  </herramienta>
+  <herramienta id="3">
+    <nombre>Docker</nombre>
+    <categoria>DevOps</categoria>
+    <tags>contenedores,desarrollo,despliegue,devops</tags>
+    <descripcion>Plataforma para desarrollar, enviar y ejecutar aplicaciones en contenedores</descripcion>
+  </herramienta>
+  <herramienta id="4">
+    <nombre>Postman</nombre>
+    <categoria>Testing</categoria>
+    <tags>api,testing,desarrollo,rest</tags>
+    <descripcion>Cliente REST completo para probar y documentar APIs</descripcion>
+  </herramienta>
+  <herramienta id="5">
+    <nombre>Node.js</nombre>
+    <categoria>Runtime</categoria>
+    <tags>javascript,backend,desarrollo,node</tags>
+    <descripcion>Entorno de ejecución de JavaScript basado en el motor V8 de Chrome</descripcion>
+  </herramienta>
+</herramientas>

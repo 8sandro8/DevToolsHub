@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "nombre": "Visual Studio Code",
+    "categoria": "IDE",
+    "tags": ["desarrollo", "web", "frontend", "codigo"],
+    "descripcion": "Editor de código fuente moderno con soporte para múltiples lenguajes y extensiones"
+  },
+  {
+    "id": 2,
+    "nombre": "Git",
+    "categoria": "Control de Versiones",
+    "tags": ["control", "desarrollo", "git", "versiones"],
+    "descripcion": "Sistema de control de versiones distribuido para gestionar cambios en el código"
+  },
+  {
+    "id": 3,
+    "nombre": "Docker",
+    "categoria": "DevOps",
+    "tags": ["contenedores", "desarrollo", "despliegue", "devops"],
+    "descripcion": "Plataforma para desarrollar, enviar y ejecutar aplicaciones en contenedores"
+  },
+  {
+    "id": 4,
+    "nombre": "Postman",
+    "categoria": "Testing",
+    "tags": ["api", "testing", "desarrollo", "rest"],
+    "descripcion": "Cliente REST completo para probar y documentar APIs"
+  },
+  {
+    "id": 5,
+    "nombre": "Node.js",
+    "categoria": "Runtime",
+    "tags": ["javascript", "backend", "desarrollo", "node"],
+    "descripcion": "Entorno de ejecución de JavaScript basado en el motor V8 de Chrome"
+  }
+]

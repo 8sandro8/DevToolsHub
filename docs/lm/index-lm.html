@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lenguajes de Marcas - DevToolsHub</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    header {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin: 0;
+    }
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    .nav a {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .nav a:hover {
+      background: #45a049;
+    }
+    .content {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    #result {
+      margin-top: 20px;
+    }
+    .error {
+      color: red;
+      padding: 10px;
+      background: #ffe6e6;
+      border-radius: 5px;
+    }
+    .info {
+      color: #666;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Lenguajes de Marcas - Proyecto LM</h1>
+      <p>Ejemplos de XML, DTD, XSLT, XPath y JSON</p>
+      <div class="nav">
+        <a href="datos.xml" target="_blank">Ver XML (datos.xml)</a>
+        <a href="herramientas.json" target="_blank">Ver JSON (herramientas.json)</a>
+        <a href="xpath-ejemplos.html">Ver XPath ejemplos</a>
+        <a href="#" onclick="location.reload()">Recargar transformación</a>
+      </div>
+    </header>
+    
+    <div class="content">
+      <h2>Catálogo de Herramientas (Transformación XSLT)</h2>
+      <p class="info">Esta página carga <code>datos.xml</code> y aplica <code>transform.xsl</code> usando XSLT del navegador.</p>
+      <div id="result">
+        <p>Cargando datos...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadXMLDoc(filename) {
+      return new Promise((resolve, reject) => {
+        const xhttp = new XMLHttpRequest();
+        xhttp.open("GET", filename, true);
+        xhttp.onreadystatechange = function() {
+          if (this.readyState === 4) {
+            if (this.status === 200) {
+              resolve(this.responseXML);
+            } else {
+              reject(new Error("Error cargando " + filename + ": " + this.status));
+            }
+          }
+        };
+        xhttp.send(null);
+      });
+    }
+
+    async function transform() {
+      const resultDiv = document.getElementById("result");
+      
+      try {
+        // Cargar XML y XSLT en paralelo
+        const [xmlDoc, xslDoc] = await Promise.all([
+          loadXMLDoc("datos.xml"),
+          loadXMLDoc("transform.xsl")
+        ]);
+        
+        if (!xmlDoc) {
+          throw new Error("No se pudo cargar datos.xml");
+        }
+        if (!xslDoc) {
+          throw new Error("No se pudo cargar transform.xsl");
+        }
+        
+        // Verificar si hay errores de parseo del XML
+        const parserError = xmlDoc.getElementsByTagName("parsererror");
+        if (parserError.length > 0) {
+          throw new Error("Error de parsing XML: " + parserError[0].textContent);
+        }
+        
+        // Aplicar transformación XSLT
+        if (typeof XSLTProcessor !== "undefined") {
+          const xsltProcessor = new XSLTProcessor();
+          xsltProcessor.importStylesheet(xslDoc);
+          const resultDocument = xsltProcessor.transformToFragment(xmlDoc, document);
+          resultDiv.innerHTML = "";
+          resultDiv.appendChild(resultDocument);
+        } else {
+          throw new Error("El navegador no soporta XSLTProcessor");
+        }
+      } catch (error) {
+        resultDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+        console.error("Error en transformación XSLT:", error);
+      }
+    }
+
+    // Ejecutar transformación al cargar la página
+    transform();
+  </script>
+</body>
+</html>
