@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS tool (
     es_favorito INTEGER DEFAULT 0,
     es_archivado INTEGER DEFAULT 0,
     fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP,
+    anio INTEGER,
     fecha_actualizacion TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
